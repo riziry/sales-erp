@@ -36,5 +36,5 @@ export function supabaseAuthMessage(error: { code?: string; status?: number }) {
     return "Too many sign-in attempts. Please wait a moment and try again.";
   if (error.status && error.status >= 500)
     return "Supabase sign-in is temporarily unavailable. Please try again shortly.";
-  return "Incorrect email or password.";
+  return "Incorrect username or password.";
 }

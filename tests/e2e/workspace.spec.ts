@@ -2,7 +2,7 @@ import { selectOption } from "./controls";
 import { test, expect, type Page } from "@playwright/test";
 async function login(page: Page) {
   await page.goto("/login");
-  await page.getByLabel("Email", { exact: true }).fill("test@yw.local");
+  await page.getByLabel("Username", { exact: true }).fill("test@yw.local");
   await page
     .getByLabel("Password", { exact: true })
     .fill("test-internal-password");

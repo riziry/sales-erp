@@ -98,7 +98,7 @@ export default async function LoginPage({
         </div>
         {emailChange === "changed" && (
           <p className="notice success" role="status">
-            Email updated. Sign in with your new email and existing password.
+            Email updated. Sign in with your username or new email and existing password.
           </p>
         )}
         {emailChange === "review" && (

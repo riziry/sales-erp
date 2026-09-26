@@ -430,3 +430,21 @@
     transition: none !important;
   }
 }
+.login-method {
+  text-align: center;
+}
+.login-method button {
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.login-method p {
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 3px;
+}

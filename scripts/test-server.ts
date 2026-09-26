@@ -78,7 +78,7 @@ async function main() {
     process.execPath,
     [
       "node_modules/next/dist/bin/next",
-      "start",
+      process.env.E2E_DEV === "1" ? "dev" : "start",
       "-p",
       process.env.E2E_PORT || "3210",
     ],

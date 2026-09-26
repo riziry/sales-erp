@@ -11,6 +11,18 @@ export function loginFailure(error: unknown): { code: string; error: string } {
     if (typeof entry.code === "string") code = entry.code;
     current = entry.cause;
   }
+  if (code === "SUPABASE_USERNAME_NOT_CONFIGURED")
+    return {
+      code,
+      error:
+        "Username sign-in is not configured yet. Use email sign-in or contact your administrator.",
+    };
+  if (code === "SUPABASE_USERNAME_LOOKUP_FAILED")
+    return {
+      code,
+      error:
+        "Username sign-in is temporarily unavailable. Try again shortly or use email sign-in.",
+    };
   if (
     code === "SUPABASE_NOT_CONFIGURED" ||
     code === "SUPABASE_USER_NOT_CONFIGURED"

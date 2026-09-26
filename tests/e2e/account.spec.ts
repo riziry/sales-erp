@@ -1,13 +1,15 @@
+import { watchRenderingWarnings } from "./rendering-warnings";
 import { test, expect } from "@playwright/test";
 import sharp from "sharp";
 import AxeBuilder from "@axe-core/playwright";
 test("account details and signature upload appear on quotation and invoice snapshots, with client approval space", async ({
   page,
 }) => {
+  const checkRenderingWarnings = watchRenderingWarnings(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/account");
   await expect(page).toHaveURL(/\/login$/);
-  await page.getByLabel("Email", { exact: true }).fill("test@yw.local");
+  await page.getByLabel("Username", { exact: true }).fill("test@yw.local");
   await page
     .getByLabel("Password", { exact: true })
     .fill("test-internal-password");
@@ -153,13 +155,14 @@ test("account details and signature upload appear on quotation and invoice snaps
   await page.context().clearCookies();
   await page.getByRole("button", { name: "Save account", exact: true }).click();
   await expect(page).toHaveURL(/\/login$/);
+  await checkRenderingWarnings();
 });
 
 test("draw a signature with mouse and touch, undo, clear, cancel and persist it", async ({
   page,
 }) => {
   await page.goto("/login");
-  await page.getByLabel("Email", { exact: true }).fill("test@yw.local");
+  await page.getByLabel("Username", { exact: true }).fill("test@yw.local");
   await page
     .getByLabel("Password", { exact: true })
     .fill("test-internal-password");
@@ -259,7 +262,7 @@ test("change email requires the current password and the new address works at lo
   const password = "test-internal-password";
   async function login(email: string) {
     await page.goto("/login");
-    await page.getByLabel("Email", { exact: true }).fill(email);
+    await page.getByLabel("Username", { exact: true }).fill(email);
     await page.getByLabel("Password", { exact: true }).fill(password);
     await page.getByRole("button", { name: "Sign in to workspace" }).click();
   }
@@ -293,14 +296,14 @@ test("change email requires the current password and the new address works at lo
   await expect(page).toHaveURL(/\/login\?emailChange=changed$/);
   await expect(
     page.getByText(
-      "Email updated. Sign in with your new email and existing password.",
+      "Email updated. Sign in with your username or new email and existing password.",
       { exact: true },
     ),
   ).toBeVisible();
   await page.goto("/account");
   await expect(page).toHaveURL(/\/login$/);
   await login("test@yw.local");
-  await expect(page.getByText(/Incorrect email\/password/)).toBeVisible();
+  await expect(page.getByText(/Incorrect username\/password/)).toBeVisible();
   await login("changed@yw.local");
   await expect(page).toHaveURL(/\/quotation$/);
   await page.goto("/account");

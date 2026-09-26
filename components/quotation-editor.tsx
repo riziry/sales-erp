@@ -1,7 +1,7 @@
 "use client";
 import type { SalesIdentity } from "@/lib/domain/account";
 import Link from "next/link";
-import Image from "next/image";
+import DocumentImage from "./document-image";
 import SalesSignature from "./sales-signature";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -363,7 +363,7 @@ export default function QuotationEditor({
             <div className="quotation-branding" id="quote-branding">
               <div className="quotation-logo-preview">
                 {data.company.logo || currentCompanyLogo ? (
-                  <Image
+                  <DocumentImage
                     src={(data.company.logo || currentCompanyLogo)!}
                     alt={
                       data.company.logo
@@ -372,7 +372,6 @@ export default function QuotationEditor({
                     }
                     width={144}
                     height={64}
-                    unoptimized
                   />
                 ) : (
                   <span className="muted small-text">No logo</span>

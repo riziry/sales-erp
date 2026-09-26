@@ -58,7 +58,7 @@ test("branded login supports phone/tablet layouts, themes, motion preferences, a
   });
   await page.getByRole("button", { name: "Sign in to workspace" }).click();
   await expect(page.locator(".login-form .notice")).toBeVisible();
-  await page.getByLabel("Email", { exact: true }).fill("invalid-address");
+  await page.getByLabel("Username", { exact: true }).fill("invalid-address");
   await page
     .getByLabel("Password", { exact: true })
     .fill("not-submitted-to-auth");
@@ -67,10 +67,10 @@ test("branded login supports phone/tablet layouts, themes, motion preferences, a
   await expect(
     page.getByRole("button", { name: "Sign in to workspace" }),
   ).toBeEnabled();
-  await expect(page.getByLabel("Email", { exact: true })).toHaveValue(
+  await expect(page.getByLabel("Username", { exact: true })).toHaveValue(
     "invalid-address",
   );
-  await page.getByLabel("Email", { exact: true }).fill("test@yw.local");
+  await page.getByLabel("Username", { exact: true }).fill("test@yw.local");
   const password = page.getByLabel("Password", { exact: true });
   await password.fill("test-internal-password");
   await page
@@ -83,4 +83,75 @@ test("branded login supports phone/tablet layouts, themes, motion preferences, a
   await expect(password).toHaveAttribute("type", "password");
   await password.press("Enter");
   await expect(page).toHaveURL(/\/quotation$/);
+});
+
+test("username and password login follows account edits and confirmed email changes", async ({
+  page,
+}) => {
+  const password = "test-internal-password";
+  await page.goto("/login");
+  await page
+    .getByRole("button", { name: "Use email instead", exact: true })
+    .click();
+  await page.getByLabel("Email", { exact: true }).fill("test@yw.local");
+  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Sign in to workspace" }).click();
+  await expect(page).toHaveURL(/\/quotation$/);
+  await page.goto("/account");
+  await page.getByLabel("Username", { exact: true }).fill("login.sales");
+  await page.getByLabel("Full name", { exact: true }).fill("Login Sales");
+  await page.getByLabel("Phone number", { exact: true }).fill("081234567890");
+  await page.getByRole("button", { name: "Save account", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Save account", exact: true }),
+  ).toBeDisabled();
+  async function logout() {
+    await page.getByRole("button", { name: "Sign out", exact: true }).click();
+    await expect(page).toHaveURL(/\/login/);
+  }
+  async function login(username: string, secret = password) {
+    await page.getByLabel("Username", { exact: true }).fill(username);
+    await page.getByLabel("Password", { exact: true }).fill(secret);
+    await page.getByRole("button", { name: "Sign in to workspace" }).click();
+    await expect(page.locator('.login-form[aria-busy="true"]')).toHaveCount(0);
+  }
+  await logout();
+  await login("  LOGIN.SALES  ");
+  await expect(page).toHaveURL(/\/quotation$/);
+  await page.goto("/account");
+  await page.getByLabel("Username", { exact: true }).fill("renamed.sales");
+  await page.getByRole("button", { name: "Save account", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Save account", exact: true }),
+  ).toBeDisabled();
+  await logout();
+  await login("login.sales");
+  await expect(page.locator(".login-form .notice")).toContainText(
+    "Incorrect username/password",
+  );
+  await login("renamed.sales", "wrong-password");
+  await expect(page.locator(".login-form .notice")).toContainText(
+    "Incorrect username/password",
+  );
+  await login("renamed.sales");
+  await expect(page).toHaveURL(/\/quotation$/);
+  await page.goto("/account");
+  async function changeEmail(email: string) {
+    await page.getByLabel("New sign-in email", { exact: true }).fill(email);
+    await page
+      .getByLabel("Current password to change email", { exact: true })
+      .fill(password);
+    await page
+      .getByRole("button", { name: "Update sign-in email", exact: true })
+      .click();
+    await expect(page).toHaveURL(/\/login\?emailChange=changed$/);
+  }
+  await changeEmail("username-login@example.test");
+  await login("renamed.sales");
+  await expect(page).toHaveURL(/\/quotation$/);
+  await page.goto("/account");
+  await expect(page.getByLabel("Sign-in email", { exact: true })).toHaveValue(
+    "username-login@example.test",
+  );
+  await changeEmail("test@yw.local");
 });

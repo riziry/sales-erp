@@ -18,6 +18,12 @@ import {
 import { supabaseServer } from "../supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { supabaseConfig } from "../supabase/config";
+import {
+  loginIdentifier,
+  matchesInternalLogin,
+  resolveSupabaseLoginEmail,
+} from "./login-identity";
+import { getAllowedLoginUser } from "../supabase/admin";
 import { loginFailure } from "./login-errors";
 import { normalizeDocumentImage } from "./document-images";
 import * as repo from "./repository";
@@ -40,15 +46,24 @@ function message(error: unknown) {
   return "Unable to save. Check the database connection and try again.";
 }
 export async function loginAction(_: { error: string }, form: FormData) {
-  const email = String(form.get("email") || "")
-    .trim()
-    .toLowerCase();
+  const identifier = loginIdentifier(
+    form.get("identifier") ?? form.get("email"),
+  );
   const password = String(form.get("password") || "");
-  if (!email || !password || password.length > 1024)
-    return { error: "Incorrect email or password." };
+  if (!identifier || !password || password.length > 1024)
+    return { error: "Incorrect username or password." };
   if (authProvider() === "supabase") {
     try {
-      allowedUserId();
+      const allowed = allowedUserId();
+      const email = identifier.includes("@")
+        ? identifier
+        : await resolveSupabaseLoginEmail(
+            database(),
+            identifier,
+            allowed,
+            getAllowedLoginUser,
+          );
+      if (!email) return { error: "Incorrect username or password." };
       const supabase = await supabaseServer();
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -83,7 +98,7 @@ export async function loginAction(_: { error: string }, form: FormData) {
       if (!user || (user.lockedUntil && user.lockedUntil > new Date()))
         return false;
       if (
-        user.email !== email ||
+        !(await matchesInternalLogin(tx, user, identifier)) ||
         !verifyPassword(password, user.passwordHash)
       ) {
         await tx
@@ -107,7 +122,7 @@ export async function loginAction(_: { error: string }, form: FormData) {
     if (!valid)
       return {
         error:
-          "Incorrect email/password or sign-in temporarily locked. Try again in 15 minutes after repeated failed attempts.",
+          "Incorrect username/password or sign-in temporarily locked. Try again in 15 minutes after repeated failed attempts.",
       };
     const token = randomBytes(32).toString("hex");
     const expiresAt = new Date(Date.now() + 8 * 60 * 60_000);

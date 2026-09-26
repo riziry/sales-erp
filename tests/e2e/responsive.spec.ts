@@ -23,7 +23,7 @@ for (const size of [
     await page.setViewportSize(size);
     await page.goto("/login");
     await fits(page);
-    await page.getByLabel("Email", { exact: true }).fill("test@yw.local");
+    await page.getByLabel("Username", { exact: true }).fill("test@yw.local");
     await page
       .getByLabel("Password", { exact: true })
       .fill("test-internal-password");

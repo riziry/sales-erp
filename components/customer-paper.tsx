@@ -1,4 +1,4 @@
-import Image from "next/image";
+import DocumentImage from "./document-image";
 import SalesSignature from "./sales-signature";
 import { eventDateLabel } from "@/lib/domain/event-dates";
 import { rupiah, type CustomerDocument } from "@/lib/domain/calculate";
@@ -37,13 +37,12 @@ export default function CustomerPaper({
       <header className="document-header">
         <div className="document-company">
           {doc.company.logo && (
-            <Image
+            <DocumentImage
               src={doc.company.logo}
               alt={`${doc.company.name} logo`}
               width={144}
               height={56}
               className="document-company-logo"
-              unoptimized
               loading="eager"
             />
           )}

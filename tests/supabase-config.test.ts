@@ -59,6 +59,6 @@ test("Supabase provider errors have safe, meaningful messages", () => {
   assert.match(supabaseAuthMessage({ status: 503 }), /unavailable/);
   assert.match(
     supabaseAuthMessage({ code: "invalid_credentials", status: 400 }),
-    /Incorrect email or password/,
+    /Incorrect username or password/,
   );
 });

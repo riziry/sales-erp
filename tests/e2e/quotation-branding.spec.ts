@@ -1,11 +1,13 @@
+import { watchRenderingWarnings } from "./rendering-warnings";
 import { test, expect } from "@playwright/test";
 import sharp from "sharp";
 
 test("existing quotation can adopt the company logo in a revision and print a translucent stamp behind the signature", async ({
   page,
 }) => {
+  const checkRenderingWarnings = watchRenderingWarnings(page);
   await page.goto("/login");
-  await page.getByLabel("Email", { exact: true }).fill("test@yw.local");
+  await page.getByLabel("Username", { exact: true }).fill("test@yw.local");
   await page
     .getByLabel("Password", { exact: true })
     .fill("test-internal-password");
@@ -173,4 +175,5 @@ test("existing quotation can adopt the company logo in a revision and print a tr
   await page.goto(original + "/print");
   await expect(page.locator(".document-company-logo")).toHaveCount(0);
   await expect(page.locator(".signature-company-stamp")).toHaveCount(0);
+  await checkRenderingWarnings();
 });

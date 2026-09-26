@@ -62,13 +62,13 @@ async function main() {
     const page = await browser.newPage();
     const login = async (pw: string) => {
       await page.goto("http://localhost:3211/login");
-      await page.getByLabel("Email", { exact: true }).fill(email);
+      await page.getByLabel("Username", { exact: true }).fill(email);
       await page.getByLabel("Password", { exact: true }).fill(pw);
       await page.getByRole("button", { name: "Sign in to workspace" }).click();
     };
     await login("incorrect-password");
     await expect(page.locator('p[role="alert"]')).toContainText(
-      "Incorrect email or password",
+      "Incorrect username or password",
     );
     await login(password);
     await expect(page).toHaveURL(/\/quotation$/, { timeout: 30_000 });
@@ -93,6 +93,7 @@ async function main() {
         page.getByText("This page could not be loaded."),
       ).toHaveCount(0);
     }
+    await page.goto("http://localhost:3211/account");
     await page.getByLabel("Current password", { exact: true }).fill(password);
     await page
       .getByLabel("New password (at least 12 characters)", { exact: true })
@@ -110,7 +111,7 @@ async function main() {
     // This temporary account must not have access to the user's actual workspace.
     const ownPage = await browser.newPage();
     await ownPage.goto("http://localhost:3000/login");
-    await ownPage.getByLabel("Email", { exact: true }).fill(email);
+    await ownPage.getByLabel("Username", { exact: true }).fill(email);
     await ownPage.getByLabel("Password", { exact: true }).fill(nextPassword);
     await ownPage.getByRole("button", { name: "Sign in to workspace" }).click();
     await expect(ownPage.locator('p[role="alert"]')).toContainText(

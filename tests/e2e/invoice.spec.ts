@@ -3,7 +3,7 @@ import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 async function login(page: Page) {
   await page.goto("/login");
-  await page.getByLabel("Email", { exact: true }).fill("test@yw.local");
+  await page.getByLabel("Username", { exact: true }).fill("test@yw.local");
   await page
     .getByLabel("Password", { exact: true })
     .fill("test-internal-password");

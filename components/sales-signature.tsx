@@ -1,4 +1,4 @@
-import Image from "next/image";
+import DocumentImage from "./document-image";
 import type { SalesIdentity } from "@/lib/domain/account";
 
 export default function SalesSignature({
@@ -13,7 +13,7 @@ export default function SalesSignature({
       <h3>Prepared by</h3>
       <div className="signature-space sales-signature-space">
         {sales?.signature && companyLogo && (
-          <Image
+          <DocumentImage
             src={companyLogo}
             alt=""
             aria-hidden="true"
@@ -21,18 +21,16 @@ export default function SalesSignature({
             width={140}
             height={62}
             loading="eager"
-            unoptimized
           />
         )}
         {sales?.signature && (
-          <Image
+          <DocumentImage
             src={sales.signature}
             alt={`Signature of ${sales.name}`}
             className="sales-signature-image"
             width={180}
             height={64}
             loading="eager"
-            unoptimized
           />
         )}
       </div>

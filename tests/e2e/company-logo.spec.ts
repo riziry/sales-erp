@@ -1,3 +1,4 @@
+import { watchRenderingWarnings } from "./rendering-warnings";
 import { test, expect, type Page } from "@playwright/test";
 import sharp from "sharp";
 import AxeBuilder from "@axe-core/playwright";
@@ -32,8 +33,9 @@ async function createQuotation(page: Page, event: string) {
 test("company logo upload, replacement, removal, protected save and quotation PDF snapshots", async ({
   page,
 }) => {
+  const checkRenderingWarnings = watchRenderingWarnings(page);
   await page.goto("/login");
-  await page.getByLabel("Email", { exact: true }).fill("test@yw.local");
+  await page.getByLabel("Username", { exact: true }).fill("test@yw.local");
   await page
     .getByLabel("Password", { exact: true })
     .fill("test-internal-password");
@@ -159,4 +161,5 @@ test("company logo upload, replacement, removal, protected save and quotation PD
   await page.context().clearCookies();
   await page.getByRole("button", { name: "Save profile", exact: true }).click();
   await expect(page).toHaveURL(/\/login$/);
+  await checkRenderingWarnings();
 });

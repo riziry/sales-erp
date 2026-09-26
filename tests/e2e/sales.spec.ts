@@ -8,7 +8,7 @@ test("custom controls format prices, support keyboard and nested dialogs, and sa
   await page.goto("/sales");
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.locator(".app-wordmark")).toContainText("sales-erp");
-  await page.getByLabel("Email", { exact: true }).fill("test@yw.local");
+  await page.getByLabel("Username", { exact: true }).fill("test@yw.local");
   await page
     .getByLabel("Password", { exact: true })
     .fill("test-internal-password");
@@ -208,7 +208,7 @@ test("nested custom select and calendar preserve modal focus; quick actions hono
   page,
 }) => {
   await page.goto("/login");
-  await page.getByLabel("Email", { exact: true }).fill("test@yw.local");
+  await page.getByLabel("Username", { exact: true }).fill("test@yw.local");
   await page
     .getByLabel("Password", { exact: true })
     .fill("test-internal-password");

@@ -1046,8 +1046,8 @@ td strong {
   background: #fff;
 }
 .company-logo-preview img {
-  width: 100%;
-  height: 100px;
+  max-width: 100%;
+  max-height: 100px;
   object-fit: contain;
 }
 .company-logo-editor p + p {
@@ -1059,7 +1059,7 @@ td strong {
     gap: 8px;
   }
   .company-logo-preview img {
-    max-width: 240px;
+    max-width: min(100%, 240px);
   }
 }
 .document-header p {
@@ -3783,9 +3783,8 @@ dialog::backdrop {
   padding: 18px;
 }
 .signature-preview img {
-  width: 100%;
-  max-width: 320px;
-  height: 128px;
+  max-width: min(100%, 320px);
+  max-height: 128px;
   object-fit: contain;
 }
 .signature-actions {
@@ -3882,9 +3881,8 @@ dialog::backdrop {
 .signature-space img {
   object-fit: contain;
   object-position: left center;
-  max-width: 100%;
-  height: 64px;
-  width: 180px;
+  max-width: min(100%, 180px);
+  max-height: 64px;
 }
 .client-signature .signature-space {
   border-bottom: 1px solid #a5ada8;
@@ -3914,7 +3912,7 @@ dialog::backdrop {
     margin-bottom: 4px;
   }
   .invoice-signatures .signature-space img {
-    height: 50px;
+    max-height: 50px;
   }
 }
 .invoice-signature-inline {
@@ -3928,7 +3926,7 @@ dialog::backdrop {
   margin-bottom: 4px;
 }
 .invoice-signature-inline .signature-space img {
-  height: 50px;
+  max-height: 50px;
 }
 .invoice-signature-inline .sales-signature > strong {
   font-size: 11px;
@@ -3947,9 +3945,8 @@ dialog::backdrop {
 .sales-signature-space .signature-company-stamp {
   position: absolute;
   z-index: 0;
-  width: 140px;
-  height: 62px;
-  max-width: 80%;
+  max-height: 62px;
+  max-width: min(80%, 140px);
   left: 24px;
   top: 50%;
   object-position: center;
@@ -4007,8 +4004,8 @@ dialog::backdrop {
   color: #60697b;
 }
 .quotation-logo-preview img {
-  width: 144px;
-  height: 64px;
+  max-width: 144px;
+  max-height: 64px;
   object-fit: contain;
 }
 .quotation-branding-details { min-width: 0; }

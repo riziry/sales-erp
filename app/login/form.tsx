@@ -4,7 +4,8 @@ import { loginAction } from "@/lib/server/actions";
 import { ArrowRight, LoaderCircle, Eye, EyeOff } from "lucide-react";
 import { Notice } from "@/components/fields";
 export default function LoginForm() {
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
+  const [useEmail, setUseEmail] = useState(false);
   const [capsLock, setCapsLock] = useState(false);
   const [visible, setVisible] = useState(false);
   const [state, action, pending] = useActionState(loginAction, { error: "" });
@@ -16,17 +17,18 @@ export default function LoginForm() {
       aria-busy={pending}
     >
       <label className="field">
-        <span>Email</span>
+        <span>{useEmail ? "Email" : "Username"}</span>
         <input
-          type="email"
-          name="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
+          type={useEmail ? "email" : "text"}
+          name="identifier"
+          value={identifier}
+          onChange={(event) => setIdentifier(event.target.value)}
+          readOnly={pending}
           autoComplete="username"
           autoCapitalize="none"
           spellCheck={false}
           required
-          placeholder="you@company.com"
+          placeholder={useEmail ? "you@company.com" : "Your username"}
         />
       </label>
       <label className="field">
@@ -35,6 +37,7 @@ export default function LoginForm() {
           <input
             type={visible ? "text" : "password"}
             name="password"
+            readOnly={pending}
             autoComplete="current-password"
             placeholder="Enter your password"
             onKeyUp={(event) => setCapsLock(event.getModifierState("CapsLock"))}
@@ -48,6 +51,7 @@ export default function LoginForm() {
           <button
             type="button"
             className="icon-button"
+            disabled={pending}
             aria-label={visible ? "Hide password" : "Show password"}
             onClick={() => setVisible(!visible)}
           >
@@ -72,6 +76,20 @@ export default function LoginForm() {
           </>
         )}
       </button>
+      <div className="login-method">
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() => setUseEmail(!useEmail)}
+        >
+          {useEmail ? "Use username instead" : "Use email instead"}
+        </button>
+        <p>
+          {useEmail
+            ? "Use your account email for initial setup or if you forgot your username."
+            : "Use the username saved in My account."}
+        </p>
+      </div>
     </form>
   );
 }

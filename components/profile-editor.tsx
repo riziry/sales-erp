@@ -1,5 +1,5 @@
 "use client";
-import Image from "next/image";
+import DocumentImage from "./document-image";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { ImagePlus, Upload, Trash2 } from "lucide-react";
 import { Area, Field, Notice } from "./fields";
@@ -101,12 +101,11 @@ export default function ProfileEditor({ initial }: { initial: Profile }) {
                 className={`company-logo-preview ${preview ? "has-logo" : ""}`}
               >
                 {preview ? (
-                  <Image
+                  <DocumentImage
                     src={preview}
                     alt="Company logo preview"
                     width={160}
                     height={100}
-                    unoptimized
                   />
                 ) : (
                   <>

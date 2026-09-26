@@ -4,7 +4,7 @@ An internal workspace for commercial master data, vendor pricing, production pac
 
 ## Supabase Auth setup
 
-Create the internal account in **Supabase Dashboard → Authentication → Users**. Sign in with that account's email and password; there is no need to create another account with `db:bootstrap`. Public registration is not available. `SUPABASE_ALLOWED_USER_ID` restricts access to one internal account rather than every user in the project.
+Create the internal account in **Supabase Dashboard → Authentication → Users**. For first-time setup, choose **Use email instead** and sign in with that account's email and password; there is no need to create another account with `db:bootstrap`. Public registration is not available. `SUPABASE_ALLOWED_USER_ID` restricts access to one internal account rather than every user in the project.
 
 Configure `.env.local` with:
 
@@ -28,7 +28,7 @@ npm run dev
 
 For an existing database, configure a PostgreSQL connection with migration privileges and run `npm run db:migrate`. The runtime role needs access to the application tables; the table-owner role created during setup already has that access. Application tables have row-level security enabled with no public access policies. The application accesses them through authenticated server code, not directly from the browser using the Data API.
 
-Supabase database connections use `sslmode=verify-full` and `sslrootcert=certs/supabase-root-2021.crt`. The public CA certificate comes from [Supabase](https://supabase-downloads.s3-ap-southeast-1.amazonaws.com/prod/ssl/prod-ca-2021.crt); both the certificate authority and hostname are verified. Include `certs` in deployments. Configure the database URL and allowed Auth UUID in the deployed server environment as well. Secret/service-role keys are not required for application login and are never sent to the browser.
+Supabase database connections use `sslmode=verify-full` and `sslrootcert=certs/supabase-root-2021.crt`. The public CA certificate comes from [Supabase](https://supabase-downloads.s3-ap-southeast-1.amazonaws.com/prod/ssl/prod-ca-2021.crt); both the certificate authority and hostname are verified. Include `certs` in deployments. Configure the database URL and allowed Auth UUID in the deployed server environment as well. Username sign-in also requires a server-only `SUPABASE_SECRET_KEY` (or `SUPABASE_SERVICE_ROLE_KEY`); email sign-in does not. The key is never sent to the browser.
 
 Supabase sessions use HttpOnly cookies. `proxy.ts` refreshes tokens before rendering, while every protected page and action verifies the user with the Auth server and checks the allowed account UUID. Email and password changes in My account use Supabase Auth. The implementation follows the [Supabase SSR guide](https://supabase.com/docs/guides/auth/server-side/creating-a-client?framework=nextjs).
 
@@ -105,6 +105,14 @@ Quotation details are grouped into customer, event/location, and document dates.
 Changing event dates does not change prices automatically. **Apply N days to daily items** updates daily selling/cost durations and daily package components after an in-app confirmation; one-time charges remain independent. Review the recalculated totals and save. The readiness indicator links to incomplete sections, and printing is disabled while edits are unsaved.
 
 New quotations use the English payment, equipment-damage, acceptance, and validity wording. **Restore defaults** lets you explicitly replace notes and terms in an existing editor; custom and historical wording otherwise stays intact. The new range is stored in existing document JSON, so no database migration is needed.
+
+### Username sign-in
+
+The login form defaults to **Username + password**. Use the username saved in **My account**; matching ignores letter case and surrounding spaces. Changing your username takes effect immediately. **Use email instead** remains available for initial account setup and username recovery, with the same password and allowed-account restriction.
+
+Supabase still verifies the password. The server resolves the username only for `SUPABASE_ALLOWED_USER_ID`, then reads that user's current Auth email using [Supabase's server-only user lookup](https://supabase.com/docs/reference/javascript/auth-admin-getuserbyid). Confirmed email changes therefore do not break username login. Set `SUPABASE_SECRET_KEY` (or `SUPABASE_SERVICE_ROLE_KEY`) in the **server environment**, including Vercel Production/Preview, and redeploy. Never prefix this key with `NEXT_PUBLIC_`. No database migration is required for this feature. Internal PostgreSQL login uses the existing account username and retains its failed-attempt lockout.
+
+Image previews and printed signatures retain their proportions when resized. The root HTML declares smooth scrolling so Next.js can disable it during route transitions. To check development-only browser warnings as well as production behavior, run `E2E_DEV=1 npx playwright test tests/e2e/account.spec.ts tests/e2e/company-logo.spec.ts tests/e2e/quotation-branding.spec.ts`.
 
 ### Application identity and sales job title
 
@@ -228,5 +236,8 @@ Unit and integration tests use temporary PostgreSQL instances through `embedded-
 Coverage includes live price formatting and caret behavior, sales follow-ups, duplicate drafts, custom control keyboard behavior, invoice creation/issuance/voiding, full versus split billing conflicts, invoice snapshot privacy, installment rounding, and the PAR LED pricing example, quantity 50, discounts, rounding, tax combinations, bank overrides, package costs, cost sources, snapshots, edit conflicts, concurrent numbering/revisions, sign-in/out, unauthenticated Server Actions, customer-safe printing, mobile layout, theme persistence, reduced motion, tutorials, keyboard/focus behavior, multi-selection and pagination with 1,000+ catalog items, and automated WCAG accessibility scans. Browser screenshots/PDFs are written to the Git-ignored `test-results` directory.
 
 ### Explicit live Supabase verification
+
+`npx tsx scripts/verify-username-login.ts` verifies username/password login against Supabase Auth, including incorrect passwords, username edits, and confirmed email changes. It creates and deletes its own temporary Auth account and uses a disposable local PostgreSQL database; existing accounts and business documents are untouched. Run after `npm run build` with the server-only Supabase key configured.
+
 
 `npx tsx scripts/verify-supabase.ts` checks the configured Supabase project. Run it after `npm run build`, with the development server on port 3000. It requires a secret/service-role key in the server environment, creates its own temporary Auth account, tests sign-in/password changes/account restrictions and read-only page access, then deletes that account. It does not change existing user passwords or commercial documents. Standard test commands do not mutate the Supabase project.

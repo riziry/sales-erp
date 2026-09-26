@@ -1,5 +1,5 @@
 "use client";
-import Image from "next/image";
+import DocumentImage from "./document-image";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Upload, PenLine, Trash2, UserRound } from "lucide-react";
@@ -158,8 +158,8 @@ export default function AccountEditor({
               />
             </div>
             <p className="muted small-text">
-              Use your email and password to sign in. Your name, job title, and
-              phone number appear on quotations and invoices.
+              Use your username and password to sign in. Your name, job title,
+              and phone number appear on quotations and invoices.
             </p>
           </section>
           <section className="panel padded signature-panel">
@@ -172,12 +172,11 @@ export default function AccountEditor({
               className={`signature-preview ${preview ? "has-signature" : ""}`}
             >
               {preview ? (
-                <Image
+                <DocumentImage
                   src={preview}
                   alt="Signature preview"
                   width={320}
                   height={128}
-                  unoptimized
                 />
               ) : (
                 <>
