@@ -76,6 +76,7 @@ export async function saveAccountAction(form: FormData) {
       {
         username: form.get("username"),
         name: form.get("name"),
+        role: form.get("role") ?? "",
         phone: form.get("phone"),
       },
       Number(form.get("version")),

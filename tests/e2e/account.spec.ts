@@ -19,6 +19,9 @@ test("account details and signature upload appear on quotation and invoice snaps
   );
   await page.getByLabel("Username", { exact: true }).fill("sales.test");
   await page.getByLabel("Full name", { exact: true }).fill("Alex Sales");
+  await page
+    .getByLabel("Role / job title", { exact: true })
+    .fill("Sales Executive");
   await page.getByLabel("Phone number", { exact: true }).fill("081234567890");
   const buffer = await sharp({
     create: { width: 300, height: 80, channels: 4, background: "transparent" },
@@ -85,6 +88,7 @@ test("account details and signature upload appear on quotation and invoice snaps
   const quoteUrl = page.url();
   await page.goto(quoteUrl + "/print");
   await expect(page.locator(".sales-signature")).toContainText("Alex Sales");
+  await expect(page.locator(".sales-role")).toHaveText("Sales Executive");
   await expect(page.locator(".sales-signature")).toContainText("081234567890");
   await expect(page.locator(".client-signature")).toContainText(
     "Client approval",
@@ -106,6 +110,9 @@ test("account details and signature upload appear on quotation and invoice snaps
   const invoiceUrl = page.url();
   await page.goto("/account");
   await page.getByLabel("Full name", { exact: true }).fill("Alex Updated");
+  await page
+    .getByLabel("Role / job title", { exact: true })
+    .fill("Sales Manager");
   await page.getByLabel("Phone number", { exact: true }).fill("089999999999");
   await page.getByRole("button", { name: "Remove", exact: true }).click();
   await page.getByRole("button", { name: "Save account", exact: true }).click();
@@ -114,6 +121,7 @@ test("account details and signature upload appear on quotation and invoice snaps
   ).toBeDisabled();
   await page.goto(invoiceUrl + "/print");
   await expect(page.locator(".sales-signature")).toContainText("Alex Sales");
+  await expect(page.locator(".sales-role")).toHaveText("Sales Executive");
   await expect(page.getByAltText("Signature of Alex Sales")).toBeVisible();
   await expect(page.locator(".client-signature")).toHaveCount(0);
   await page.screenshot({
@@ -135,6 +143,7 @@ test("account details and signature upload appear on quotation and invoice snaps
   );
   await page.goto(quoteUrl + "/print");
   await expect(page.locator(".sales-signature")).toContainText("Alex Updated");
+  await expect(page.locator(".sales-role")).toHaveText("Sales Manager");
   await expect(page.locator(".sales-signature img")).toHaveCount(0);
   // A stale authenticated form cannot upload after its session is removed.
   await page.goto("/account");

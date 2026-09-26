@@ -85,6 +85,7 @@ export function customerDocument(q: Quotation) {
     sales: q.sales
       ? {
           name: q.sales.name,
+          role: q.sales.role,
           phone: q.sales.phone,
           signature: q.sales.signature,
         }

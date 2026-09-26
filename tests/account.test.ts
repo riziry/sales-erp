@@ -102,7 +102,12 @@ test("sales contact and signature snapshots survive account changes and stay on 
   const account = await saveAccountProfile(
     fixture.db,
     "internal:2",
-    { username: "sales.two", name: "Sales Original", phone: "081234567890" },
+    {
+      username: "sales.two",
+      name: "Sales Original",
+      role: "Sales Executive",
+      phone: "081234567890",
+    },
     0,
     signature,
   );
@@ -122,7 +127,12 @@ test("sales contact and signature snapshots survive account changes and stay on 
   await saveAccountProfile(
     fixture.db,
     "internal:2",
-    { username: "sales.two", name: "Sales Changed", phone: "089999999999" },
+    {
+      username: "sales.two",
+      name: "Sales Changed",
+      role: "Sales Manager",
+      phone: "089999999999",
+    },
     1,
     null,
   );
@@ -132,6 +142,11 @@ test("sales contact and signature snapshots survive account changes and stay on 
   );
   const doc = (await getInvoice(fixture.db, invoice.id))!.document;
   assert.equal(doc.sales?.name, "Sales Original");
+  assert.equal(doc.sales?.role, "Sales Executive");
+  assert.equal(
+    (await accountProfile(fixture.db, "internal:2"))?.role,
+    "Sales Manager",
+  );
   assert.equal(doc.sales?.signature, signature);
   const projection = JSON.stringify(customerDocument(q));
   assert.ok(!projection.includes("sales.two"));

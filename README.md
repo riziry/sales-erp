@@ -64,6 +64,28 @@ npm start
 
 Deploy behind HTTPS; production session cookies use `Secure`. Back up PostgreSQL regularly. `ADMIN_PASSWORD` is only used by internal-mode bootstrap and can be removed afterward. Password changes are available in My account. Business data is not stored in localStorage.
 
+### Vercel deployment and post-login errors
+
+`.env.local` is local configuration and is Git-ignored. Copy its **variable names and values** into **Vercel → Project Settings → Environment Variables** for the intended environment (Production / Preview), then redeploy. Do not upload the file as a public asset. Configure `AUTH_PROVIDER`, `DATABASE_URL`, `SUPABASE_ALLOWED_USER_ID`, `NEXT_PUBLIC_SUPABASE_URL`, and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (or the supported anon key). Supabase Auth success does not verify the separate PostgreSQL connection.
+
+Run `npm run db:migrate` against the target database before releasing, then `npm run db:check`. The check is read-only: it validates connectivity and the workspace schema without printing credentials or business data. Migration `0005` adds the account job title. Do not run migrations per request.
+
+`next.config.ts` explicitly includes `certs/**/*.crt` in server file traces. Without this, a URL containing `sslrootcert=certs/supabase-root-2021.crt` can work locally but fail in a Vercel function because the CA file is missing. Keep `sslmode=verify-full`; do not disable TLS verification. This follows [Vercel’s file inclusion guidance](https://vercel.com/kb/guide/how-can-i-use-files-in-serverless-functions). Use a Supabase pooler connection appropriate for your environment; the session pooler on port 5432 is supported. Runtime connections are limited to three per Vercel instance.
+
+If the workspace still fails, check Vercel runtime logs for `[sales-erp] Workspace database:`:
+
+| Code | Resolution |
+| --- | --- |
+| `DATABASE_NOT_CONFIGURED` | Set `DATABASE_URL` for this deployment environment and redeploy. |
+| `DATABASE_CERTIFICATE_FILE_MISSING` | Deploy the committed `certs` directory and file tracing configuration. |
+| `DATABASE_TLS_ERROR` | Check the CA, hostname, and certificate validity; retain TLS verification. |
+| `DATABASE_CREDENTIALS_ERROR` | Check PostgreSQL user/password (separate from Supabase Auth credentials). |
+| `DATABASE_MIGRATION_REQUIRED` | Run `npm run db:migrate` against the same database. |
+| `DATABASE_PERMISSION_ERROR` | Grant the runtime database role access to application tables. |
+| `DATABASE_CONNECTION_ERROR` | Check pooler hostname/port, network reachability, and connection limits. |
+
+The diagnostic logs only a fixed code, not SQL, passwords, user details, or connection URLs. A successful local check does not verify Vercel's independently configured environment.
+
 ## Workflow
 
 1. Configure company details, default tax rates, and tax/non-tax bank accounts in **Profile & bank accounts**.
@@ -83,6 +105,14 @@ Quotation details are grouped into customer, event/location, and document dates.
 Changing event dates does not change prices automatically. **Apply N days to daily items** updates daily selling/cost durations and daily package components after an in-app confirmation; one-time charges remain independent. Review the recalculated totals and save. The readiness indicator links to incomplete sections, and printing is disabled while edits are unsaved.
 
 New quotations use the English payment, equipment-damage, acceptance, and validity wording. **Restore defaults** lets you explicitly replace notes and terms in an existing editor; custom and historical wording otherwise stays intact. The new range is stored in existing document JSON, so no database migration is needed.
+
+### Application identity and sales job title
+
+The workspace uses `public/logo.png`. Browser and Apple icons are prepared from that artwork with `npx tsx scripts/brand-icons.ts`; commit the resulting icons when replacing it. This application branding is separate from the customer's company logo saved in Company & accounts.
+
+In **My account**, edit **Role / job title** (for example, Sales Executive). This is a customer-facing title, not an access permission. It appears beneath the sales name on quotations and invoices. New quotations snapshot the saved title; existing quotations keep their original title until **Use my current account details** is selected and saved (as a revision if already sent). Invoice copies retain the quotation's sales identity.
+
+The redesigned login includes password visibility, a Caps Lock hint, pending feedback, responsive layouts, theme controls, and brief entry animations that respect reduced-motion settings.
 
 ### Company logo
 

@@ -1,3 +1,4 @@
+import { databaseDiagnostic } from "@/lib/db/diagnostics";
 import { database } from "@/lib/db";
 import { accountProfile, accountKey } from "@/lib/server/accounts";
 import Brand from "@/components/brand";
@@ -17,7 +18,16 @@ export default async function Workspace({
   children: React.ReactNode;
 }) {
   const user = await requireUser();
-  const account = await accountProfile(database(), accountKey(user));
+  const account = await (async () => {
+    try {
+      return await accountProfile(database(), accountKey(user));
+    } catch (error) {
+      // Stable diagnostic for deployment logs without SQL, personal data, or secrets.
+      const code = databaseDiagnostic(error);
+      console.error(`[sales-erp] Workspace database: ${code}`);
+      throw new Error(`Workspace unavailable (${code}).`);
+    }
+  })();
   return (
     <div className="workspace">
       <a href="#main-content" className="skip-link">

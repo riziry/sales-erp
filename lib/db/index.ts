@@ -12,7 +12,8 @@ export function database() {
     );
   const pool = (globalDb.ywPool ??= new Pool({
     connectionString: process.env.DATABASE_URL,
-    max: 10,
+    max: process.env.VERCEL ? 3 : 10,
+    idleTimeoutMillis: 20_000,
     connectionTimeoutMillis: 10_000,
   }));
   return drizzle(pool, { schema });

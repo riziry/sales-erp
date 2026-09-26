@@ -23,13 +23,11 @@ test("existing quotation can adopt the company logo in a revision and print a tr
   await page.getByLabel("Username", { exact: true }).fill("brand.sales");
   await page.getByLabel("Full name", { exact: true }).fill("Brand Sales");
   await page.getByLabel("Phone number", { exact: true }).fill("081234567890");
-  await page
-    .getByLabel("Signature image", { exact: true })
-    .setInputFiles({
-      name: "signature.png",
-      mimeType: "image/png",
-      buffer: signature,
-    });
+  await page.getByLabel("Signature image", { exact: true }).setInputFiles({
+    name: "signature.png",
+    mimeType: "image/png",
+    buffer: signature,
+  });
   await page.getByRole("button", { name: "Save account", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Save account", exact: true }),
@@ -79,13 +77,11 @@ test("existing quotation can adopt the company logo in a revision and print a tr
     .png()
     .toBuffer();
   await page.goto("/profile");
-  await page
-    .getByLabel("Company logo image", { exact: true })
-    .setInputFiles({
-      name: "company.png",
-      mimeType: "image/png",
-      buffer: logo,
-    });
+  await page.getByLabel("Company logo image", { exact: true }).setInputFiles({
+    name: "company.png",
+    mimeType: "image/png",
+    buffer: logo,
+  });
   await page.getByRole("button", { name: "Save profile", exact: true }).click();
   await expect(
     page.getByText("Profile saved successfully.", { exact: true }),
@@ -115,7 +111,12 @@ test("existing quotation can adopt the company logo in a revision and print a tr
     .getByRole("button", { name: "Save new revision", exact: true })
     .first()
     .click();
-  await expect(page).not.toHaveURL(new RegExp(original + "$"));
+  await expect(page).toHaveURL(
+    (url) =>
+      /\/quotation\/[a-f0-9-]{36}$/.test(url.pathname) &&
+      url.pathname !== new URL(original).pathname &&
+      !url.hash,
+  );
   const revised = page.url();
   await page.reload();
   await expect(page.getByAltText("Quotation company logo")).toHaveAttribute(

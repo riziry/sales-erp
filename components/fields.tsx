@@ -16,6 +16,7 @@ export function Field({
   currency = false,
   min,
   max,
+  maxLength,
 }: {
   label: string;
   value: string;
@@ -27,6 +28,7 @@ export function Field({
   currency?: boolean;
   min?: number;
   max?: number;
+  maxLength?: number;
 }) {
   const [visible, setVisible] = useState(false);
   const common = { label, value, onChange, required, readOnly, placeholder };
@@ -57,6 +59,7 @@ export function Field({
             placeholder={placeholder}
             required={required}
             readOnly={readOnly}
+            maxLength={maxLength}
           />
           {type === "password" && (
             <button

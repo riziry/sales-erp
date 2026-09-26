@@ -8,12 +8,14 @@ export const signatureSchema = z
   )
   .nullable();
 export const salesIdentitySchema = z.object({
+  role: z.string().trim().max(100).optional(),
   name: z.string().trim().min(1).max(250),
   phone: z.string().trim().min(1).max(40),
   signature: signatureSchema,
 });
 export type SalesIdentity = z.infer<typeof salesIdentitySchema>;
 export const accountSchema = z.object({
+  role: z.string().trim().max(100).default(""),
   username: z
     .string()
     .trim()
@@ -44,6 +46,11 @@ export function salesIdentity(
   account: AccountProfile | null,
 ): SalesIdentity | null {
   return account
-    ? { name: account.name, phone: account.phone, signature: account.signature }
+    ? {
+        name: account.name,
+        role: account.role,
+        phone: account.phone,
+        signature: account.signature,
+      }
     : null;
 }

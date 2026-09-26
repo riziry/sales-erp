@@ -3937,6 +3937,9 @@ dialog::backdrop {
   min-width: 0;
   overflow-wrap: anywhere;
 }
+.sales-signature .sales-role {
+  margin: 2px 0;
+}
 .sales-signature-space {
   position: relative;
   isolation: isolate;
@@ -3999,6 +4002,9 @@ dialog::backdrop {
   display: grid;
   place-items: center;
   padding: 10px;
+}
+.quotation-logo-preview .muted {
+  color: #60697b;
 }
 .quotation-logo-preview img {
   width: 144px;

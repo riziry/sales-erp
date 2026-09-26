@@ -170,6 +170,7 @@ export const followups = pgTable(
 ).enableRLS();
 
 export const accountProfiles = pgTable("account_profiles", {
+  role: text("role").notNull().default(""),
   id: text("id").primaryKey(),
   username: text("username").notNull().unique(),
   name: text("name").notNull(),

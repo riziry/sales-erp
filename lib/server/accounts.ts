@@ -19,8 +19,8 @@ export async function accountProfile(
     .from(accountProfiles)
     .where(eq(accountProfiles.id, key));
   if (!account) return null;
-  const { username, name, phone, signature, version } = account;
-  return { username, name, phone, signature, version };
+  const { username, name, role, phone, signature, version } = account;
+  return { username, name, role, phone, signature, version };
 }
 export { normalizeDocumentImage as normalizeSignature } from "./document-images";
 export async function saveAccountProfile(

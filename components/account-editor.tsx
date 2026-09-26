@@ -26,6 +26,7 @@ export default function AccountEditor({
   const { notify } = useUI();
   const [username, setUsername] = useState(initial?.username || "");
   const [name, setName] = useState(initial?.name || "");
+  const [role, setRole] = useState(initial?.role || "");
   const [phone, setPhone] = useState(initial?.phone || "");
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState(initial?.signature || "");
@@ -70,6 +71,7 @@ export default function AccountEditor({
     form.set("username", username);
     form.set("name", name);
     form.set("phone", phone);
+    form.set("role", role);
     form.set("version", String(initial?.version || 0));
     form.set("removeSignature", remove ? "yes" : "no");
     if (file) form.set("signature", file);
@@ -128,6 +130,16 @@ export default function AccountEditor({
                 required
               />
               <Field
+                label="Role / job title"
+                value={role}
+                onChange={(value) => {
+                  setRole(value);
+                  setDirty(true);
+                }}
+                placeholder="Sales Executive"
+                maxLength={100}
+              />
+              <Field
                 label="Phone number"
                 type="tel"
                 value={phone}
@@ -146,8 +158,8 @@ export default function AccountEditor({
               />
             </div>
             <p className="muted small-text">
-              Use your email and password to sign in. Your name and phone number
-              appear on quotations and invoices.
+              Use your email and password to sign in. Your name, job title, and
+              phone number appear on quotations and invoices.
             </p>
           </section>
           <section className="panel padded signature-panel">

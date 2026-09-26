@@ -14,7 +14,8 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "db:bootstrap": "tsx scripts/bootstrap.ts",
     "test:serve": "tsx scripts/test-server.ts",
-    "db:setup-supabase": "tsx scripts/setup-supabase.ts"
+    "db:setup-supabase": "tsx scripts/setup-supabase.ts",
+    "db:check": "tsx scripts/check-database.ts"
   },
   "dependencies": {
     "@radix-ui/react-popover": "^1.1.23",

@@ -37,6 +37,7 @@ export default function SalesSignature({
         )}
       </div>
       <strong>{sales?.name || "Sales representative"}</strong>
+      {sales?.role && <p className="sales-role">{sales.role}</p>}
       <p>
         {sales?.phone
           ? `Contact: ${sales.phone}`

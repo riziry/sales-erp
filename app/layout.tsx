@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import UIProvider from "@/components/ui-provider";
 import "./globals.css";
 import "./responsive.css";
+import "./login.css";
 export const metadata: Metadata = {
   title: {
     default: "sales-erp — Sales workspace",
     template: "%s · sales-erp",
   },
-  icons: { icon: "/icon.svg" },
   description: "Quotations, invoices, customer follow-ups, and sales planning",
 };
 export default function RootLayout({
