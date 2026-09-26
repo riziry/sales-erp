@@ -1,4 +1,5 @@
 "use client";
+import SectionNavigation from "./section-navigation";
 import DocumentImage from "./document-image";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { ImagePlus, Upload, Trash2 } from "lucide-react";
@@ -41,6 +42,15 @@ export default function ProfileEditor({ initial }: { initial: Profile }) {
           </p>
         </div>
       </div>
+      <SectionNavigation
+        label="Company sections"
+        sections={[
+          { id: "company-details", label: "Company" },
+          { id: "company-logo", label: "Logo" },
+          { id: "company-taxes", label: "Taxes" },
+          { id: "company-banks", label: "Bank accounts" },
+        ]}
+      />
       <form
         noValidate
         className="stack"
@@ -65,7 +75,10 @@ export default function ProfileEditor({ initial }: { initial: Profile }) {
         }}
       >
         <fieldset disabled={pending} className="stack">
-          <section className="panel padded">
+          <section
+            className="panel padded settings-section"
+            id="company-details"
+          >
             <h2>Company details</h2>
             <div className="form-grid">
               <Field
@@ -91,7 +104,7 @@ export default function ProfileEditor({ initial }: { initial: Profile }) {
               />
             </div>
           </section>
-          <section className="panel padded">
+          <section className="panel padded settings-section" id="company-logo">
             <h2>Company logo</h2>
             <p className="section-description">
               Add your logo to the header of new quotations and their invoices.
@@ -183,7 +196,7 @@ export default function ProfileEditor({ initial }: { initial: Profile }) {
               </div>
             </div>
           </section>
-          <section className="panel padded">
+          <section className="panel padded settings-section" id="company-taxes">
             <h2>Default taxes</h2>
             <p className="muted">
               VAT (PPN) and income tax (PPh) are optional and added to the
@@ -204,7 +217,7 @@ export default function ProfileEditor({ initial }: { initial: Profile }) {
               />
             </div>
           </section>
-          <div className="form-grid">
+          <div className="form-grid settings-section" id="company-banks">
             {(["regularBank", "taxBank"] as const).map((key) => (
               <section className="panel padded" key={key}>
                 <h2>
@@ -238,9 +251,19 @@ export default function ProfileEditor({ initial }: { initial: Profile }) {
               </section>
             ))}
           </div>
-          <Notice text={message} success={success} />
-          <div className="form-actions">
-            <button className="button primary" disabled={pending}>
+          <div className="settings-save-bar">
+            <Notice text={message} success={success} />
+            <div className="settings-save-state" role="status">
+              <strong>
+                {pending
+                  ? "Saving company settings…"
+                  : dirty
+                    ? "You have unsaved changes"
+                    : "Company settings"}
+              </strong>
+              <span>Changes apply to new quotations.</span>
+            </div>
+            <button className="button primary" disabled={pending || !dirty}>
               {pending ? "Saving…" : "Save profile"}
             </button>
           </div>

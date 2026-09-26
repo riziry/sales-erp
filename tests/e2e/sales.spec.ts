@@ -235,6 +235,10 @@ test("nested custom select and calendar preserve modal focus; quick actions hono
   await expect(select).toContainText("Once / event");
   await page.screenshot({ path: "test-results/custom-master-controls.png" });
   await page.keyboard.press("Escape");
+  await page
+    .getByRole("dialog", { name: "Discard record changes?", exact: true })
+    .getByRole("button", { name: "Discard changes", exact: true })
+    .click();
   await expect(dialog).not.toBeVisible();
   await page.goto("/quotation/new");
   await page

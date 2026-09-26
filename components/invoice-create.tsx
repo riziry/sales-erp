@@ -1,9 +1,9 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useId, useState, useTransition } from "react";
 import { Picker } from "./search-picker";
-import { Notice, Select } from "./fields";
+import { Notice } from "./fields";
 import { createInvoiceAction } from "@/lib/server/invoice-actions";
 import {
   invoiceAmounts,
@@ -44,6 +44,7 @@ export default function InvoiceCreate({
   initial: string;
 }) {
   const router = useRouter();
+  const billingId = useId();
   const [sourceId, setSourceId] = useState(initial);
   const [kind, setKind] = useState<InvoiceKind>(
     plans.some(
@@ -98,20 +99,77 @@ export default function InvoiceCreate({
               );
             }}
           />
-          <Select
-            label="Invoice type"
-            value={kind}
-            onChange={(value) => {
-              setKind(value as InvoiceKind);
-              setError("");
-            }}
-          >
-            {Object.entries(invoiceKinds).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </Select>
+          <div className="billing-choice-field">
+            <h3 id={billingId}>Invoice type</h3>
+            <p className="muted small-text">
+              Choose what you want to bill now.
+            </p>
+            <div
+              className="billing-choices"
+              role="radiogroup"
+              aria-labelledby={billingId}
+            >
+              {(Object.entries(invoiceKinds) as [InvoiceKind, string][]).map(
+                ([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    role="radio"
+                    aria-label={label}
+                    aria-checked={kind === value}
+                    tabIndex={kind === value ? 0 : -1}
+                    className={`billing-choice ${kind === value ? "selected" : ""}`}
+                    onClick={() => {
+                      setKind(value);
+                      setError("");
+                    }}
+                    onKeyDown={(event) => {
+                      const keys = [
+                        "ArrowRight",
+                        "ArrowDown",
+                        "ArrowLeft",
+                        "ArrowUp",
+                        "Home",
+                        "End",
+                      ];
+                      if (!keys.includes(event.key)) return;
+                      event.preventDefault();
+                      const options = ["FULL", "DEPOSIT", "FINAL"] as const;
+                      const offset = ["ArrowRight", "ArrowDown"].includes(
+                        event.key,
+                      )
+                        ? 1
+                        : -1;
+                      const index =
+                        event.key === "Home"
+                          ? 0
+                          : event.key === "End"
+                            ? 2
+                            : (options.indexOf(value) + offset + 3) % 3;
+                      setKind(options[index]);
+                      setError("");
+                      event.currentTarget.parentElement
+                        ?.querySelectorAll<HTMLButtonElement>("button")
+                        [index]?.focus();
+                    }}
+                  >
+                    <span className="billing-choice-header">
+                      <strong>{label}</strong>
+                      <span className="billing-choice-dot" aria-hidden="true" />
+                    </span>
+                    <span>
+                      {value === "FULL"
+                        ? "One invoice for the entire project."
+                        : value === "DEPOSIT"
+                          ? "Confirm the booking with a 50% down payment."
+                          : "Bill the remaining 50% after the down payment."}
+                    </span>
+                    {base && <b>{rupiah(invoiceAmounts(base, value).total)}</b>}
+                  </button>
+                ),
+              )}
+            </div>
+          </div>
           {source && (
             <div className="inset">
               <strong>{source.customer}</strong>

@@ -2,6 +2,7 @@ import { databaseDiagnostic } from "@/lib/db/diagnostics";
 import { database } from "@/lib/db";
 import { accountProfile, accountKey } from "@/lib/server/accounts";
 import Brand from "@/components/brand";
+import WorkspaceContext from "@/components/workspace-context";
 import QuickActions from "@/components/quick-actions";
 import PageTransition from "@/components/page-transition";
 import Hint from "@/components/ui/tooltip";
@@ -65,8 +66,9 @@ export default async function Workspace({
       </aside>
       <div className="workspace-main">
         <header className="topbar">
-          <QuickActions />
+          <WorkspaceContext />
           <div className="topbar-actions">
+            <QuickActions />
             <ThemeSwitcher />
             <TutorialButton />
           </div>

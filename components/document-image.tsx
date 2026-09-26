@@ -6,10 +6,15 @@ import type { ImgHTMLAttributes } from "react";
  */
 export default function DocumentImage({
   style,
+  alt,
   ...props
-}: ImgHTMLAttributes<HTMLImageElement>) {
+}: Omit<ImgHTMLAttributes<HTMLImageElement>, "alt"> & { alt: string }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element -- embedded images never use the optimizer
-    <img {...props} style={{ width: "auto", height: "auto", ...style }} />
+    <img
+      {...props}
+      alt={alt}
+      style={{ width: "auto", height: "auto", ...style }}
+    />
   );
 }

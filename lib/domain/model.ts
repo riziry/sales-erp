@@ -65,6 +65,37 @@ export const contactSchema = z.object({
   notes: text,
   active: z.boolean(),
 });
+export const customerContactSchema = z.object({
+  id: z.uuid(),
+  name,
+  role: text,
+  phone: text,
+  email: text,
+  notes: text,
+  active: z.boolean(),
+});
+export const customerSchema = contactSchema.extend({
+  kind: z.enum(["COMPANY", "INDIVIDUAL"]).optional(),
+  contacts: z.array(customerContactSchema).max(100).optional(),
+  primaryContactId: z.uuid().nullable().optional(),
+}).superRefine((customer, ctx) => {
+  const contacts = customer.contacts || [];
+  if (new Set(contacts.map(c => c.id)).size !== contacts.length)
+    ctx.addIssue({ code: "custom", path: ["contacts"], message: "Contact IDs must be unique" });
+  if (customer.kind === "INDIVIDUAL" && contacts.length)
+    ctx.addIssue({ code: "custom", path: ["contacts"], message: "Individual customers cannot have company contacts" });
+  if (customer.primaryContactId && !contacts.some(c => c.id === customer.primaryContactId && c.active))
+    ctx.addIssue({ code: "custom", path: ["primaryContactId"], message: "Choose an active contact from this company" });
+});
+export const recipientSchema = customerContactSchema.pick({ name: true, role: true, phone: true, email: true });
+export const customerSnapshotSchema = contactSchema.extend({
+  kind: z.enum(["COMPANY", "INDIVIDUAL"]).optional(),
+  recipientId: z.uuid().nullable().optional(),
+  recipient: recipientSchema.nullable().optional(),
+}).superRefine((customer, ctx) => {
+  if (customer.kind === "INDIVIDUAL" && (customer.recipient || customer.recipientId))
+    ctx.addIssue({ code: "custom", path: ["recipient"], message: "Individual customers do not have a separate company recipient" });
+});
 export const priceSchema = z.object({
   itemId: z.uuid(),
   vendorId: z.uuid(),
@@ -87,7 +118,7 @@ export const packageSchema = z.object({
 });
 export const masterSchemas = {
   items: itemSchema,
-  customers: contactSchema,
+  customers: customerSchema,
   vendors: contactSchema,
   prices: priceSchema,
   packages: packageSchema,
@@ -95,12 +126,15 @@ export const masterSchemas = {
 export type MasterKind = keyof typeof masterSchemas;
 export type Item = z.infer<typeof itemSchema>;
 export type Contact = z.infer<typeof contactSchema>;
+export type Customer = z.infer<typeof customerSchema>;
+export type CustomerContact = z.infer<typeof customerContactSchema>;
+export type CustomerSnapshot = z.infer<typeof customerSnapshotSchema>;
 export type VendorPrice = z.infer<typeof priceSchema>;
 export type Package = z.infer<typeof packageSchema>;
 export type RecordOf<T> = T & { id: string };
 export type Catalog = {
   items: RecordOf<Item>[];
-  customers: RecordOf<Contact>[];
+  customers: RecordOf<Customer>[];
   vendors: RecordOf<Contact>[];
   prices: RecordOf<VendorPrice>[];
   packages: RecordOf<Package>[];
@@ -160,7 +194,7 @@ export const quotationSchema = z
   .object({
     sales: salesIdentitySchema.nullable().optional(),
     customerId: z.uuid().nullable(),
-    customer: contactSchema,
+    customer: customerSnapshotSchema,
     company: profileSchema.pick({
       name: true,
       logo: true,

@@ -13,6 +13,7 @@ import {
 import type {
   Item,
   Contact,
+  Customer,
   Package,
   Profile,
   Quotation,
@@ -36,7 +37,7 @@ export const vendors = pgTable("vendors", {
 }).enableRLS();
 export const customers = pgTable("customers", {
   ...identity(),
-  data: jsonb("data").$type<Contact>().notNull(),
+  data: jsonb("data").$type<Customer>().notNull(),
 }).enableRLS();
 export const vendorPrices = pgTable("vendor_prices", {
   id: uuid("id").primaryKey().defaultRandom(),

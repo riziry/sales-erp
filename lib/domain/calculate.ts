@@ -102,6 +102,13 @@ export function customerDocument(q: Quotation) {
       address: q.customer.address,
       contact: q.customer.contact,
       email: q.customer.email,
+      kind: q.customer.kind,
+      recipient: q.customer.recipient ? {
+        name: q.customer.recipient.name,
+        role: q.customer.recipient.role,
+        phone: q.customer.recipient.phone,
+        email: q.customer.recipient.email,
+      } : null,
     },
     event: q.event,
     location: q.location,

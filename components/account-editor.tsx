@@ -1,4 +1,5 @@
 "use client";
+import SectionNavigation from "./section-navigation";
 import DocumentImage from "./document-image";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -96,6 +97,15 @@ export default function AccountEditor({
           </p>
         </div>
       </div>
+      <SectionNavigation
+        label="Account sections"
+        sections={[
+          { id: "account-details", label: "Identity" },
+          { id: "account-signature", label: "Signature" },
+          { id: "account-email", label: "Email" },
+          { id: "account-password", label: "Password" },
+        ]}
+      />
       <form
         noValidate
         onSubmit={(event) => {
@@ -104,7 +114,10 @@ export default function AccountEditor({
         }}
       >
         <fieldset disabled={pending} className="account-layout">
-          <section className="panel padded">
+          <section
+            className="panel padded settings-section"
+            id="account-details"
+          >
             <div className="section-heading">
               <h2>
                 <UserRound size={19} /> Account details
@@ -162,7 +175,10 @@ export default function AccountEditor({
               and phone number appear on quotations and invoices.
             </p>
           </section>
-          <section className="panel padded signature-panel">
+          <section
+            className="panel padded signature-panel settings-section"
+            id="account-signature"
+          >
             <div className="section-heading">
               <h2>
                 <PenLine size={19} /> Your signature
@@ -238,8 +254,22 @@ export default function AccountEditor({
               account details” to update its next saved version.
             </p>
           </section>
-          <div className="account-save">
+          <div className="account-save settings-save-bar">
             <Notice text={error} />
+            <div className="settings-save-state" role="status">
+              <strong>
+                {pending
+                  ? "Saving your profile…"
+                  : dirty
+                    ? "You have unsaved changes"
+                    : "Your sales identity"}
+              </strong>
+              <span>
+                {dirty
+                  ? "Save to use these details in new documents."
+                  : "Used on quotations and invoices."}
+              </span>
+            </div>
             <div className="form-actions">
               <button
                 type="submit"
@@ -260,6 +290,7 @@ export default function AccountEditor({
       )}
       <section
         className="panel padded security-panel"
+        id="account-email"
         aria-labelledby="email-heading"
       >
         <h2 id="email-heading">Change email</h2>
@@ -345,7 +376,10 @@ export default function AccountEditor({
           </p>
         )}
       </section>
-      <section className="panel padded security-panel">
+      <section
+        className="panel padded security-panel settings-section"
+        id="account-password"
+      >
         <h2>Change password</h2>
         <p className="section-description">
           Use at least 12 characters. Changing your password signs you out.

@@ -3,7 +3,6 @@ import { SelectControl } from "./ui/select";
 import Link from "next/link";
 import { useState } from "react";
 import {
-  Search,
   Plus,
   ArrowUpRight,
   FileText,
@@ -14,6 +13,8 @@ import {
 import { statusNames, type Status } from "@/lib/domain/model";
 import { rupiah } from "@/lib/domain/calculate";
 import { Picker } from "./search-picker";
+import ListSearch from "./list-search";
+import Decimal from "decimal.js";
 import Pagination from "./pagination";
 import { WelcomeCard } from "./tutorial";
 export type QuotationRow = {
@@ -36,6 +37,7 @@ export default function QuotationList({
   const [query, setQuery] = useState(initial.q || "");
   const [status, setStatus] = useState(initial.status || "");
   const [customer, setCustomer] = useState(initial.customer || "");
+  const [sort, setSort] = useState("recent");
   const [page, setPage] = useState(0);
   const filtered = rows.filter(
     (row) =>
@@ -50,6 +52,17 @@ export default function QuotationList({
             .toLowerCase()
             .includes(word),
         ),
+  );
+  const ordered = [...filtered].sort((a, b) =>
+    sort === "amount"
+      ? new Decimal(b.total).comparedTo(a.total)
+      : sort === "customer"
+        ? a.customer.localeCompare(b.customer)
+        : b.date.localeCompare(a.date) || b.number.localeCompare(a.number),
+  );
+  const currentPage = Math.min(
+    page,
+    Math.max(0, Math.ceil(ordered.length / 20) - 1),
   );
   const customers = [...new Set(rows.map((row) => row.customer))].sort();
   function reset() {
@@ -113,18 +126,15 @@ export default function QuotationList({
           <span className="muted small-text">Latest revisions only</span>
         </div>
         <div className="table-toolbar">
-          <div className="search">
-            <Search size={18} />
-            <input
-              aria-label="Search quotations"
-              placeholder="Search number, customer, or event…"
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setPage(0);
-              }}
-            />
-          </div>
+          <ListSearch
+            label="Search quotations"
+            placeholder="Search number, customer, or event…"
+            value={query}
+            onChange={(value) => {
+              setQuery(value);
+              setPage(0);
+            }}
+          />
           <SelectControl
             label="Quotation status"
             value={status}
@@ -158,6 +168,26 @@ export default function QuotationList({
             </button>
           )}
         </div>
+        <div className="list-results-bar">
+          <p role="status">
+            {filtered.length} of {rows.length} quotations
+            {status ? ` · ${statusNames[status as Status]}` : ""}
+            {customer ? ` · ${customer}` : ""}
+          </p>
+          <SelectControl
+            label="Sort quotations"
+            value={sort}
+            onChange={(value) => {
+              setSort(value);
+              setPage(0);
+            }}
+            choices={[
+              { value: "recent", label: "Newest first" },
+              { value: "amount", label: "Highest amount" },
+              { value: "customer", label: "Customer A–Z" },
+            ]}
+          />
+        </div>
         <div className="table-scroll">
           <table className="record-table" role="table">
             <thead role="rowgroup">
@@ -183,50 +213,59 @@ export default function QuotationList({
               </tr>
             </thead>
             <tbody role="rowgroup">
-              {filtered.slice(page * 20, (page + 1) * 20).map((row) => (
-                <tr role="row" key={row.id}>
-                  <td
-                    role="cell"
-                    data-label="Quotation / event"
-                    className="record-primary"
-                  >
-                    <Link className="table-link" href={`/quotation/${row.id}`}>
-                      {row.number}
-                      <span className="revision">R{row.revision}</span>
-                    </Link>
-                    <small>{row.event}</small>
-                  </td>
-                  <td role="cell" data-label="Customer" className="record-wide">
-                    {row.customer}
-                  </td>
-                  <td role="cell" data-label="Date" className="date-cell">
-                    {row.date}
-                  </td>
-                  <td
-                    role="cell"
-                    data-label="Quotation total"
-                    className="amount record-wide"
-                  >
-                    {rupiah(row.total)}
-                  </td>
-                  <td role="cell" data-label="Status">
-                    <span
-                      className={`badge status-${row.status.toLowerCase()}`}
+              {ordered
+                .slice(currentPage * 20, (currentPage + 1) * 20)
+                .map((row) => (
+                  <tr role="row" key={row.id}>
+                    <td
+                      role="cell"
+                      data-label="Quotation / event"
+                      className="record-primary"
                     >
-                      {statusNames[row.status]}
-                    </span>
-                  </td>
-                  <td role="cell" data-label="" className="record-actions">
-                    <Link
-                      href={`/quotation/${row.id}`}
-                      className="row-arrow"
-                      aria-label={`Open ${row.number}`}
+                      <Link
+                        className="table-link"
+                        href={`/quotation/${row.id}`}
+                      >
+                        {row.number}
+                        <span className="revision">R{row.revision}</span>
+                      </Link>
+                      <small>{row.event}</small>
+                    </td>
+                    <td
+                      role="cell"
+                      data-label="Customer"
+                      className="record-wide"
                     >
-                      <ArrowUpRight size={18} />
-                    </Link>
-                  </td>
-                </tr>
-              ))}
+                      {row.customer}
+                    </td>
+                    <td role="cell" data-label="Date" className="date-cell">
+                      {row.date}
+                    </td>
+                    <td
+                      role="cell"
+                      data-label="Quotation total"
+                      className="amount record-wide"
+                    >
+                      {rupiah(row.total)}
+                    </td>
+                    <td role="cell" data-label="Status">
+                      <span
+                        className={`badge status-${row.status.toLowerCase()}`}
+                      >
+                        {statusNames[row.status]}
+                      </span>
+                    </td>
+                    <td role="cell" data-label="" className="record-actions">
+                      <Link
+                        href={`/quotation/${row.id}`}
+                        className="row-arrow"
+                        aria-label={`Open ${row.number}`}
+                      >
+                        <ArrowUpRight size={18} />
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
@@ -257,7 +296,11 @@ export default function QuotationList({
             )}
           </div>
         )}
-        <Pagination count={filtered.length} page={page} onChange={setPage} />
+        <Pagination
+          count={filtered.length}
+          page={currentPage}
+          onChange={setPage}
+        />
       </section>
       <div className="hint-card">
         <FileText size={22} />

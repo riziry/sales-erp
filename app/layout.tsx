@@ -3,6 +3,7 @@ import UIProvider from "@/components/ui-provider";
 import "./globals.css";
 import "./responsive.css";
 import "./login.css";
+import "./workspace.css";
 export const metadata: Metadata = {
   title: {
     default: "sales-erp — Sales workspace",

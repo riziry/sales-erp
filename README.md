@@ -94,7 +94,7 @@ The diagnostic logs only a fixed code, not SQL, passwords, user details, or conn
 4. Click **Save draft**. Unknown costs may remain blank; an explicitly entered zero is a valid cost and differs from an unknown cost.
 5. With at least one item and all costs complete, **Mark as sent**, then **Mark as approved** or **Mark as rejected**. Status changes do not send emails.
 6. Use **Save new revision** when editing a sent, approved, or rejected quotation. Previous versions remain viewable and printable. Only the latest revision can be edited or change status.
-7. Use **Print / Save PDF** for an A4 customer document. Disable the browser's default headers and footers for a clean PDF.
+7. Use **Print / Save PDF** for an A4 customer document. Keep A4 and default margins: the print stylesheet removes browser page margins and repeats the document's own spacing on every page, suppressing browser headers/footers in Chromium. If your browser or custom print settings still show a title, URL, date, or page number, disable **Headers and footers** in the print dialog.
 
 Existing customer-entered text and stored document snapshots retain their original content. Changing the interface language does not rewrite historical documents.
 
@@ -166,7 +166,7 @@ Open **Invoices → Create invoice**, or choose **Create invoice** from a saved 
 
 ## Account and signatures
 
-Open **My account** to set your username, full name, phone number, and signature. **Change email** requires your current password and updates the actual login identity. Supabase changes show an awaiting-confirmation state until the required inbox confirmations are complete; the allowed account UUID stays unchanged. Internal-auth email changes revoke sessions and require signing in with the new address. Password management is available only in My account, and verifies the current password before invalidating sessions. Company settings contain only company, tax, and bank details.
+Open **My account** to set your username, full name, phone number, and signature. **Change email** requires your current password and updates the actual login identity. Supabase changes show an awaiting-confirmation state until the required inbox confirmations are complete; the allowed account UUID stays unchanged. Internal-auth email changes revoke sessions; sign in again with your username or new email address. Password management is available only in My account, and verifies the current password before invalidating sessions. Company settings contain only company, tax, and bank details.
 
 For Supabase email confirmation, set **Authentication → URL Configuration → Site URL** to your application URL and add `https://YOUR_APP_DOMAIN/auth/email-change` to the redirect allowlist (plus your local development callback if needed). The callback handles the PKCE code, checks the allowed account UUID, and returns to My account. Open confirmation links in the browser that requested the change; otherwise complete the confirmations and sign in manually. Use **Check confirmation status** to refresh a pending change. Email confirmation/delivery uses the existing Supabase configuration; no service-role key or confirmation bypass is used. See [Supabase updateUser](https://supabase.com/docs/reference/javascript/auth-updateuser).
 
@@ -213,6 +213,14 @@ Catalog data is currently loaded by authenticated Server Components and searched
 The application is branded **sales-erp**; company identities saved in profiles and documents remain business data. Dropdowns, numeric steppers, date calendars, checkboxes, password visibility, tooltips, and in-app confirmations use themed controls with keyboard support. Price inputs group rupiah automatically (`100000` → `100.000`); a decimal comma (`100.000,50`) preserves exact decimals in server calculations. Scrollbars, the operating system's print/PDF dialog, password-manager UI, and browser tab-close warnings remain browser-managed.
 
 Press **Ctrl/Cmd + K** for quick actions. Page entry, popovers, cards, buttons, and save notifications use brief animations; reduced-motion preferences disable them.
+
+### Workspace navigation and editing
+
+The shared workspace now includes breadcrumb context, keyboard navigation in Quick actions (Ctrl/Cmd + K, then arrow keys and Enter), and loading placeholders while pages load. Quotations, invoices, master data, sales, and settings share the same surfaces, spacing, controls, and light/dark palette.
+
+Directory search includes contacts, email, SKU, and categories. Item categories have their own filter. Search can be cleared with its button or Escape; empty results offer a filter reset. Quotations sort by newest, highest amount, or customer; invoices sort by newest, due date, or amount. Result counts describe the active selection.
+
+Master forms protect unsaved edits when closed or navigating away, disable editing during save, and confirm successful saves. Company/account settings have section links and sticky save controls, with visible unsaved/saving states. Quotation section links highlight the current section. Invoice creation presents full, down-payment, and final-installment billing as keyboard-accessible choices with descriptions and amount previews. These UI changes do not alter pricing, tax, revision, or billing rules.
 
 ### Phones and tablets
 

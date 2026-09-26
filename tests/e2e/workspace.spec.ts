@@ -41,14 +41,20 @@ test("pages and actions require authentication; cookies are secure and logout re
   expect(session.secure).toBe(true);
   expect(session.sameSite).toBe("Lax");
   await page.goto("/profile");
+  await expect(
+    page.getByRole("button", { name: "Save profile", exact: true }),
+  ).toBeDisabled();
+  await page
+    .getByLabel("Company name", { exact: true })
+    .fill("Authenticated test company");
   const actionRequest = page.waitForRequest(
     (r) => r.method() === "POST" && !!r.headers()["next-action"],
   );
   await page.getByRole("button", { name: "Save profile", exact: true }).click();
   const action = await actionRequest;
-  await expect(page.getByRole("status")).toContainText(
-    "Profile saved successfully",
-  );
+  await expect(
+    page.getByRole("status").filter({ hasText: "Profile saved successfully" }),
+  ).toContainText("Profile saved successfully");
   const replay = await request.post("/profile", {
     headers: {
       "next-action": action.headers()["next-action"],
@@ -336,7 +342,9 @@ test("master item CRUD, vendor comparison, packages, and profile settings", asyn
   await page.goto("/profile");
   await page.getByLabel("VAT rate (PPN, %)", { exact: true }).fill("12");
   await page.getByRole("button", { name: "Save profile", exact: true }).click();
-  await expect(page.getByRole("status")).toContainText("successfully");
+  await expect(
+    page.getByRole("status").filter({ hasText: "Profile saved successfully" }),
+  ).toBeVisible();
   await page.goto("/quotation/new");
   await expect(page.getByLabel("VAT (PPN, %)", { exact: true })).toHaveValue(
     "12",

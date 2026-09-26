@@ -5,8 +5,11 @@ import { useRouter } from "next/navigation";
 import { Area, BasisField, Check, Field, Notice } from "./fields";
 import { SearchSelect as Select } from "./search-picker";
 import Modal from "./modal";
+import ListSearch from "./list-search";
+import { useUI } from "./ui-provider";
+import { useUnsavedChanges } from "./use-unsaved-changes";
 import Pagination from "./pagination";
-import { Search, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { masterAction } from "@/lib/server/actions";
 import {
   emptyContact,
@@ -77,13 +80,32 @@ export default function MasterManager({
   catalog: Catalog;
 }) {
   const router = useRouter();
+  const { confirm, notify } = useUI();
+  const [baseline, setBaseline] = useState("");
   const [page, setPage] = useState(0);
   const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("");
   const [filter, setFilter] = useState("active");
   const [id, setId] = useState<string | null>(null);
   const [form, setForm] = useState<FormData | null>(null);
   const [error, setError] = useState("");
   const [pending, start] = useTransition();
+  const dirty = !!form && JSON.stringify(form) !== baseline;
+  useUnsavedChanges(dirty, "directory record");
+  async function closeEditor() {
+    if (pending) return;
+    if (
+      !dirty ||
+      (await confirm({
+        title: "Discard record changes?",
+        description:
+          "Your changes have not been saved. Keep editing to finish, or discard them to close this form.",
+        confirmLabel: "Discard changes",
+        danger: true,
+      }))
+    )
+      setForm(null);
+  }
   const rows = catalog[kind] as ({ id: string; active: boolean } & FormData)[];
   const value = (key: string) => String(form?.[key] ?? "");
   const update = (key: string, v: unknown) =>
@@ -99,13 +121,22 @@ export default function MasterManager({
   const shown = rows.filter(
     (r) =>
       (filter === "all" || r.active === (filter === "active")) &&
-      `${rowName(r)} ${r.sku || ""} ${r.category || ""}`
+      (!category || r.category === category) &&
+      query
+        .trim()
         .toLowerCase()
-        .includes(query.toLowerCase()),
+        .split(/\s+/)
+        .every((word) =>
+          `${rowName(r)} ${r.sku || ""} ${r.category || ""} ${r.subcategory || ""} ${r.contact || ""} ${r.email || ""}`
+            .toLowerCase()
+            .includes(word),
+        ),
   );
   function edit(row?: FormData & { id: string }) {
     setId(row?.id ?? null);
-    setForm(row ? structuredClone(row) : fresh(kind));
+    const next = row ? structuredClone(row) : fresh(kind);
+    setForm(next);
+    setBaseline(JSON.stringify(next));
     setError("");
   }
   const components = (form?.components || []) as Package["components"];
@@ -132,18 +163,15 @@ export default function MasterManager({
       </div>
       <section className="panel">
         <div className="table-toolbar">
-          <div className="search">
-            <Search size={18} />
-            <input
-              aria-label="Search records"
-              placeholder={`Search ${titles[kind].toLowerCase()}…`}
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setPage(0);
-              }}
-            />
-          </div>
+          <ListSearch
+            label="Search records"
+            placeholder={`Search ${titles[kind].toLowerCase()}…`}
+            value={query}
+            onChange={(value) => {
+              setQuery(value);
+              setPage(0);
+            }}
+          />
           <SelectControl
             label="Filter active status"
             value={filter}
@@ -157,7 +185,42 @@ export default function MasterManager({
               { value: "all", label: "All statuses" },
             ]}
           />
-          <span className="muted">{shown.length} records</span>
+          {kind === "items" && (
+            <SelectControl
+              label="Item category"
+              value={category}
+              onChange={(value) => {
+                setCategory(value);
+                setPage(0);
+              }}
+              choices={[
+                { value: "", label: "All categories" },
+                ...[
+                  ...new Set(
+                    catalog.items.map((item) => item.category).filter(Boolean),
+                  ),
+                ]
+                  .sort()
+                  .map((value) => ({ value, label: value })),
+              ]}
+            />
+          )}
+          {(query || category || filter !== "active") && (
+            <button
+              className="button small"
+              onClick={() => {
+                setQuery("");
+                setFilter("active");
+                setCategory("");
+                setPage(0);
+              }}
+            >
+              Clear filters
+            </button>
+          )}
+          <span className="directory-result-count" role="status">
+            {shown.length} of {rows.length} records
+          </span>
         </div>
         <div className="table-scroll">
           <table className="record-table" role="table">
@@ -205,7 +268,14 @@ export default function MasterManager({
                       data-label={kind === "prices" ? "Item / vendor" : "Name"}
                       className="record-primary"
                     >
-                      <strong>{rowName(r)}</strong>
+                      <button
+                        type="button"
+                        className="record-name-button"
+                        onClick={() => edit(r)}
+                        aria-label={`Edit ${rowName(r)}`}
+                      >
+                        {rowName(r)}
+                      </button>
                       {r.sku ? <small>{String(r.sku)}</small> : null}
                     </td>
                     <td role="cell" data-label="Detail" className="record-wide">
@@ -262,18 +332,32 @@ export default function MasterManager({
           <div className="empty-state">
             <span className="empty-icon">◇</span>
             <h3>
-              {query || filter !== "active"
+              {query || category || filter !== "active"
                 ? "No matching records"
                 : `No ${titles[kind].toLowerCase()} yet`}
             </h3>
             <p>
-              {query || filter !== "active"
+              {query || category || filter !== "active"
                 ? "Try a different search or status filter."
                 : "Add your first record to reuse it in quotations."}
             </p>
-            <button className="button" onClick={() => edit()}>
-              <Plus size={16} aria-hidden="true" /> Add record
-            </button>
+            {query || category || filter !== "active" ? (
+              <button
+                className="button"
+                onClick={() => {
+                  setQuery("");
+                  setFilter("active");
+                  setCategory("");
+                  setPage(0);
+                }}
+              >
+                Clear filters
+              </button>
+            ) : (
+              <button className="button" onClick={() => edit()}>
+                <Plus size={16} aria-hidden="true" /> Add record
+              </button>
+            )}
           </div>
         )}
         <Pagination
@@ -285,7 +369,7 @@ export default function MasterManager({
       {form && (
         <Modal
           title={`${id ? "Edit" : "Add"} ${titles[kind].toLowerCase()}`}
-          onClose={() => setForm(null)}
+          onClose={() => void closeEditor()}
           busy={pending}
         >
           <form
@@ -298,191 +382,125 @@ export default function MasterManager({
                 if (!result.ok) setError(result.error);
                 else {
                   setForm(null);
+                  notify(
+                    `${id ? "Changes saved" : "Record added"} successfully`,
+                  );
                   router.refresh();
                 }
               });
             }}
           >
-            <div className="form-grid">
-              {kind !== "prices" && (
-                <Field
-                  label="Name"
-                  value={value("name")}
-                  onChange={(v) => update("name", v)}
-                  required
-                />
-              )}
-              {kind === "items" && (
-                <>
+            <p className="modal-description">
+              {subtitles[kind]} Fields marked * are required.
+            </p>
+            <fieldset disabled={pending}>
+              <div className="form-grid">
+                {kind !== "prices" && (
                   <Field
-                    label="SKU"
-                    value={value("sku")}
-                    onChange={(v) => update("sku", v)}
+                    label="Name"
+                    value={value("name")}
+                    onChange={(v) => update("name", v)}
                     required
                   />
-                  <Field
-                    label="Category"
-                    value={value("category")}
-                    onChange={(v) => update("category", v)}
-                  />
-                  <Field
-                    label="Subcategory"
-                    value={value("subcategory")}
-                    onChange={(v) => update("subcategory", v)}
-                  />
-                  <Field
-                    label="Default unit"
-                    value={value("unit")}
-                    onChange={(v) => update("unit", v)}
-                    required
-                  />
-                  <Field
-                    label="Internal reference cost (leave blank if unknown)"
-                    currency
-                    type="number"
-                    value={value("internalCost")}
-                    onChange={(v) => update("internalCost", v || null)}
-                  />
-                  <BasisField
-                    label="Internal cost basis"
-                    value={value("costBasis") as Basis}
-                    onChange={(v) => update("costBasis", v)}
-                  />
-                  <Field
-                    label="External integration ID (optional)"
-                    value={value("externalInventoryItemId")}
-                    onChange={(v) =>
-                      update("externalInventoryItemId", v || null)
-                    }
-                  />
-                </>
-              )}
-              {(kind === "items" || kind === "packages") && (
-                <>
-                  <Field
-                    label="Default selling price"
-                    currency
-                    type="number"
-                    value={value("sellingPrice")}
-                    onChange={(v) => update("sellingPrice", v)}
-                    required
-                  />
-                  <BasisField
-                    label="Selling price basis"
-                    value={value("sellingBasis") as Basis}
-                    onChange={(v) => update("sellingBasis", v)}
-                  />
-                  <Area
-                    label="Description"
-                    value={value("description")}
-                    onChange={(v) => update("description", v)}
-                  />
-                </>
-              )}
-              {(kind === "vendors" || kind === "customers") && (
-                <>
-                  <Field
-                    label="Contact / phone"
-                    value={value("contact")}
-                    onChange={(v) => update("contact", v)}
-                  />
-                  <Field
-                    label="Email"
-                    value={value("email")}
-                    onChange={(v) => update("email", v)}
-                  />
-                  <Area
-                    label="Address"
-                    value={value("address")}
-                    onChange={(v) => update("address", v)}
-                  />
-                </>
-              )}
-              {kind === "prices" && (
-                <>
-                  <Select
-                    label="Item"
-                    value={value("itemId")}
-                    onChange={(v) => {
-                      update("itemId", v);
-                      update(
-                        "unit",
-                        catalog.items.find((i) => i.id === v)?.unit || "unit",
-                      );
-                    }}
-                  >
-                    <option value="">Select item</option>
-                    {catalog.items.map((i) => (
-                      <option key={i.id} value={i.id}>
-                        {i.name}
-                        {"sku" in i ? ` · ${i.sku}` : ""}
-                        {!i.active ? " (inactive)" : ""}
-                      </option>
-                    ))}
-                  </Select>
-                  <Select
-                    label="Vendor"
-                    value={value("vendorId")}
-                    onChange={(v) => update("vendorId", v)}
-                  >
-                    <option value="">Select vendor</option>
-                    {catalog.vendors.map((i) => (
-                      <option key={i.id} value={i.id}>
-                        {i.name}
-                        {"sku" in i ? ` · ${i.sku}` : ""}
-                        {!i.active ? " (inactive)" : ""}
-                      </option>
-                    ))}
-                  </Select>
-                  <Field
-                    label="Vendor price"
-                    currency
-                    type="number"
-                    value={value("price")}
-                    onChange={(v) => update("price", v)}
-                    required
-                  />
-                  <Field
-                    label="Price unit"
-                    value={value("unit")}
-                    onChange={(v) => update("unit", v)}
-                    required
-                  />
-                  <BasisField
-                    label="Price basis"
-                    value={value("basis") as Basis}
-                    onChange={(v) => update("basis", v)}
-                  />
-                </>
-              )}
-              {kind !== "packages" && (
-                <Area
-                  label="Notes"
-                  value={value("notes")}
-                  onChange={(v) => update("notes", v)}
-                />
-              )}
-            </div>
-            {kind === "packages" && (
-              <div className="inset">
-                <h3>Package contents</h3>
-                <p className="muted">
-                  Component quantities for one package. Select cost sources when
-                  creating a quotation.
-                </p>
-                {components.map((part, index) => (
-                  <div className="component-template" key={index}>
-                    <Select
-                      label={`Component ${index + 1}`}
-                      value={part.itemId}
+                )}
+                {kind === "items" && (
+                  <>
+                    <Field
+                      label="SKU"
+                      value={value("sku")}
+                      onChange={(v) => update("sku", v)}
+                      required
+                    />
+                    <Field
+                      label="Category"
+                      value={value("category")}
+                      onChange={(v) => update("category", v)}
+                    />
+                    <Field
+                      label="Subcategory"
+                      value={value("subcategory")}
+                      onChange={(v) => update("subcategory", v)}
+                    />
+                    <Field
+                      label="Default unit"
+                      value={value("unit")}
+                      onChange={(v) => update("unit", v)}
+                      required
+                    />
+                    <Field
+                      label="Internal reference cost (leave blank if unknown)"
+                      currency
+                      type="number"
+                      value={value("internalCost")}
+                      onChange={(v) => update("internalCost", v || null)}
+                    />
+                    <BasisField
+                      label="Internal cost basis"
+                      value={value("costBasis") as Basis}
+                      onChange={(v) => update("costBasis", v)}
+                    />
+                    <Field
+                      label="External integration ID (optional)"
+                      value={value("externalInventoryItemId")}
                       onChange={(v) =>
-                        update(
-                          "components",
-                          components.map((c, i) =>
-                            i === index ? { ...c, itemId: v } : c,
-                          ),
-                        )
+                        update("externalInventoryItemId", v || null)
                       }
+                    />
+                  </>
+                )}
+                {(kind === "items" || kind === "packages") && (
+                  <>
+                    <Field
+                      label="Default selling price"
+                      currency
+                      type="number"
+                      value={value("sellingPrice")}
+                      onChange={(v) => update("sellingPrice", v)}
+                      required
+                    />
+                    <BasisField
+                      label="Selling price basis"
+                      value={value("sellingBasis") as Basis}
+                      onChange={(v) => update("sellingBasis", v)}
+                    />
+                    <Area
+                      label="Description"
+                      value={value("description")}
+                      onChange={(v) => update("description", v)}
+                    />
+                  </>
+                )}
+                {(kind === "vendors" || kind === "customers") && (
+                  <>
+                    <Field
+                      label="Contact / phone"
+                      value={value("contact")}
+                      onChange={(v) => update("contact", v)}
+                    />
+                    <Field
+                      label="Email"
+                      value={value("email")}
+                      onChange={(v) => update("email", v)}
+                    />
+                    <Area
+                      label="Address"
+                      value={value("address")}
+                      onChange={(v) => update("address", v)}
+                    />
+                  </>
+                )}
+                {kind === "prices" && (
+                  <>
+                    <Select
+                      label="Item"
+                      value={value("itemId")}
+                      onChange={(v) => {
+                        update("itemId", v);
+                        update(
+                          "unit",
+                          catalog.items.find((i) => i.id === v)?.unit || "unit",
+                        );
+                      }}
                     >
                       <option value="">Select item</option>
                       {catalog.items.map((i) => (
@@ -493,86 +511,160 @@ export default function MasterManager({
                         </option>
                       ))}
                     </Select>
-                    <Field
-                      label="Qty per package"
-                      type="number"
-                      value={part.quantity}
-                      onChange={(v) =>
-                        update(
-                          "components",
-                          components.map((c, i) =>
-                            i === index ? { ...c, quantity: v } : c,
-                          ),
-                        )
-                      }
-                    />
-                    <button
-                      type="button"
-                      className="button danger"
-                      onClick={() =>
-                        update(
-                          "components",
-                          components.filter((_, i) => i !== index),
-                        )
-                      }
+                    <Select
+                      label="Vendor"
+                      value={value("vendorId")}
+                      onChange={(v) => update("vendorId", v)}
                     >
-                      Remove
-                    </button>
-                  </div>
-                ))}
+                      <option value="">Select vendor</option>
+                      {catalog.vendors.map((i) => (
+                        <option key={i.id} value={i.id}>
+                          {i.name}
+                          {"sku" in i ? ` · ${i.sku}` : ""}
+                          {!i.active ? " (inactive)" : ""}
+                        </option>
+                      ))}
+                    </Select>
+                    <Field
+                      label="Vendor price"
+                      currency
+                      type="number"
+                      value={value("price")}
+                      onChange={(v) => update("price", v)}
+                      required
+                    />
+                    <Field
+                      label="Price unit"
+                      value={value("unit")}
+                      onChange={(v) => update("unit", v)}
+                      required
+                    />
+                    <BasisField
+                      label="Price basis"
+                      value={value("basis") as Basis}
+                      onChange={(v) => update("basis", v)}
+                    />
+                  </>
+                )}
+                {kind !== "packages" && (
+                  <Area
+                    label="Notes"
+                    value={value("notes")}
+                    onChange={(v) => update("notes", v)}
+                  />
+                )}
+              </div>
+              {kind === "packages" && (
+                <div className="inset">
+                  <h3>Package contents</h3>
+                  <p className="muted">
+                    Component quantities for one package. Select cost sources
+                    when creating a quotation.
+                  </p>
+                  {components.map((part, index) => (
+                    <div className="component-template" key={index}>
+                      <Select
+                        label={`Component ${index + 1}`}
+                        value={part.itemId}
+                        onChange={(v) =>
+                          update(
+                            "components",
+                            components.map((c, i) =>
+                              i === index ? { ...c, itemId: v } : c,
+                            ),
+                          )
+                        }
+                      >
+                        <option value="">Select item</option>
+                        {catalog.items.map((i) => (
+                          <option key={i.id} value={i.id}>
+                            {i.name}
+                            {"sku" in i ? ` · ${i.sku}` : ""}
+                            {!i.active ? " (inactive)" : ""}
+                          </option>
+                        ))}
+                      </Select>
+                      <Field
+                        label="Qty per package"
+                        type="number"
+                        value={part.quantity}
+                        onChange={(v) =>
+                          update(
+                            "components",
+                            components.map((c, i) =>
+                              i === index ? { ...c, quantity: v } : c,
+                            ),
+                          )
+                        }
+                      />
+                      <button
+                        type="button"
+                        className="button danger"
+                        onClick={() =>
+                          update(
+                            "components",
+                            components.filter((_, i) => i !== index),
+                          )
+                        }
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    className="button"
+                    onClick={() =>
+                      update("components", [
+                        ...components,
+                        { itemId: "", quantity: "1" },
+                      ])
+                    }
+                  >
+                    <Plus size={16} aria-hidden="true" /> Component
+                  </button>
+                </div>
+              )}
+              {kind === "items" && id && (
+                <div className="inset">
+                  <h3>Vendor price comparison</h3>
+                  {catalog.prices
+                    .filter((p) => p.itemId === id && p.active)
+                    .map((p) => (
+                      <div className="summary-row" key={p.id}>
+                        <span>
+                          {vendorName(p.vendorId)} · {p.unit} /{" "}
+                          {p.basis === "DAILY" ? "day" : "event"}
+                        </span>
+                        <strong>{rupiah(p.price)}</strong>
+                      </div>
+                    ))}
+                  {!catalog.prices.some((p) => p.itemId === id && p.active) && (
+                    <p className="muted">
+                      No vendor prices yet. Add one from Vendor pricing.
+                    </p>
+                  )}
+                </div>
+              )}
+              <Check
+                label="Active"
+                checked={!!form.active}
+                onChange={(v) => update("active", v)}
+              />
+              <Notice text={error} />
+              <div className="form-actions">
                 <button
                   type="button"
                   className="button"
-                  onClick={() =>
-                    update("components", [
-                      ...components,
-                      { itemId: "", quantity: "1" },
-                    ])
-                  }
+                  onClick={() => void closeEditor()}
                 >
-                  <Plus size={16} aria-hidden="true" /> Component
+                  Cancel
+                </button>
+                <button className="button primary" disabled={pending}>
+                  {pending ? "Saving…" : "Save changes"}
                 </button>
               </div>
-            )}
-            {kind === "items" && id && (
-              <div className="inset">
-                <h3>Vendor price comparison</h3>
-                {catalog.prices
-                  .filter((p) => p.itemId === id && p.active)
-                  .map((p) => (
-                    <div className="summary-row" key={p.id}>
-                      <span>
-                        {vendorName(p.vendorId)} · {p.unit} /{" "}
-                        {p.basis === "DAILY" ? "day" : "event"}
-                      </span>
-                      <strong>{rupiah(p.price)}</strong>
-                    </div>
-                  ))}
-                {!catalog.prices.some((p) => p.itemId === id && p.active) && (
-                  <p className="muted">
-                    No vendor prices yet. Add one from Vendor pricing.
-                  </p>
-                )}
-              </div>
-            )}
-            <Check
-              label="Active"
-              checked={!!form.active}
-              onChange={(v) => update("active", v)}
-            />
-            <Notice text={error} />
-            <div className="form-actions">
-              <button
-                type="button"
-                className="button"
-                onClick={() => setForm(null)}
-              >
-                Cancel
-              </button>
-              <button className="button primary" disabled={pending}>
-                {pending ? "Saving…" : "Save changes"}
-              </button>
-            </div>
+            </fieldset>
           </form>
         </Modal>
       )}

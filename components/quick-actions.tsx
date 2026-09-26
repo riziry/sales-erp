@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Command,
   Search,
@@ -10,12 +10,53 @@ import {
   Receipt,
   Users,
   Package,
+  Layers,
+  Handshake,
+  Tags,
+  FileText,
+  BookOpen,
   ChartNoAxesCombined,
   Settings,
   UserRound,
 } from "lucide-react";
 import Modal from "./modal";
 const actions = [
+  {
+    label: "Quotations",
+    detail: "Search offers and revisions",
+    href: "/quotation",
+    Icon: FileText,
+  },
+  {
+    label: "Invoices",
+    detail: "Browse drafts and issued invoices",
+    href: "/invoice",
+    Icon: Receipt,
+  },
+  {
+    label: "Packages",
+    detail: "Reusable production bundles",
+    href: "/master/packages",
+    Icon: Layers,
+  },
+  {
+    label: "Vendors",
+    detail: "Supplier contacts",
+    href: "/master/vendors",
+    Icon: Handshake,
+  },
+  {
+    label: "Vendor pricing",
+    detail: "Compare reference costs",
+    href: "/master/prices",
+    Icon: Tags,
+  },
+  {
+    label: "Getting started",
+    detail: "Step-by-step workspace guide",
+    href: "/help",
+    Icon: BookOpen,
+  },
   {
     label: "My account",
     detail: "Contact details, password, and signature",
@@ -64,6 +105,8 @@ export default function QuickActions() {
   return <ActionMenu key={pathname} />;
 }
 function ActionMenu() {
+  const results = useRef<HTMLDivElement>(null);
+  const search = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   useEffect(() => {
@@ -108,14 +151,45 @@ function ActionMenu() {
           <div className="search">
             <Search size={18} />
             <input
+              ref={search}
               data-initial-focus
               aria-label="Find an action"
+              onKeyDown={(event) => {
+                if (event.key === "ArrowDown") {
+                  event.preventDefault();
+                  results.current
+                    ?.querySelector<HTMLAnchorElement>("a")
+                    ?.focus();
+                }
+                if (event.key === "Enter" && filtered.length === 1) {
+                  event.preventDefault();
+                  results.current
+                    ?.querySelector<HTMLAnchorElement>("a")
+                    ?.click();
+                }
+              }}
               placeholder="Find a page or start something new…"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />
           </div>
-          <div className="command-results">
+          <div
+            className="command-results"
+            ref={results}
+            onKeyDown={(event) => {
+              if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+              event.preventDefault();
+              const links = Array.from(
+                results.current?.querySelectorAll<HTMLAnchorElement>("a") || [],
+              );
+              const index = links.indexOf(
+                document.activeElement as HTMLAnchorElement,
+              );
+              const next = index + (event.key === "ArrowDown" ? 1 : -1);
+              if (next < 0) search.current?.focus();
+              else links[Math.min(next, links.length - 1)]?.focus();
+            }}
+          >
             {filtered.map(({ href, label, detail, Icon }) => (
               <Link key={href} href={href} onClick={() => setOpen(false)}>
                 <span className="command-icon">

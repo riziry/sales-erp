@@ -1,6 +1,7 @@
 "use client";
 import type { SalesIdentity } from "@/lib/domain/account";
 import Link from "next/link";
+import SectionNavigation from "./section-navigation";
 import DocumentImage from "./document-image";
 import SalesSignature from "./sales-signature";
 import { useRouter } from "next/navigation";
@@ -320,22 +321,16 @@ export default function QuotationEditor({
         <Notice text={error} />
         <Notice text={message} success />
       </div>
-      <nav className="editor-sections" aria-label="Quotation sections">
-        <a href="#quote-details">
-          <span>01</span> Details
-        </a>
-        <a href="#quote-items">
-          <span>02</span> Items & packages
-        </a>
-        <a href="#quote-taxes">
-          <span>03</span> Discounts & taxes
-        </a>
-        <a href="#quote-terms">
-          <span>04</span> Notes & terms
-        </a>
-        <a href="#quote-review">
-          <span>05</span> Review
-        </a>
+      <SectionNavigation
+        label="Quotation sections"
+        sections={[
+          { id: "quote-details", label: "Details" },
+          { id: "quote-items", label: "Items & packages" },
+          { id: "quote-taxes", label: "Discounts & taxes" },
+          { id: "quote-terms", label: "Notes & terms" },
+          { id: "quote-review", label: "Review" },
+        ]}
+      >
         <span className={`save-indicator ${dirty ? "unsaved" : ""}`}>
           {dirty
             ? "Unsaved changes"
@@ -343,7 +338,7 @@ export default function QuotationEditor({
               ? "All changes saved"
               : "New draft"}
         </span>
-      </nav>
+      </SectionNavigation>
       <div className="editor-layout">
         <fieldset
           className="editor-body stack"

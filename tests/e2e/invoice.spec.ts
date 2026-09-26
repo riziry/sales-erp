@@ -1,4 +1,3 @@
-import { selectOption } from "./controls";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 async function login(page: Page) {
@@ -44,7 +43,34 @@ test("invoice split workflow: create, save, issue, revise source, final installm
   await login(page);
   const quotationUrl = await quotation(page, "Split invoice event");
   await page.getByRole("link", { name: "Create invoice", exact: true }).click();
-  await selectOption(page, "Invoice type", "Down payment (50%)");
+  await page.getByRole("radio", { name: "Full payment", exact: true }).focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(
+    page.getByRole("radio", { name: "Down payment (50%)", exact: true }),
+  ).toBeFocused();
+  await expect(
+    page.getByRole("radio", { name: "Down payment (50%)", exact: true }),
+  ).toHaveAttribute("aria-checked", "true");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  for (const width of [390, 820, 1440]) {
+    await page.setViewportSize({ width, height: 1000 });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    ).toBe(true);
+  }
+  expect(
+    (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze())
+      .violations,
+  ).toEqual([]);
+  await page.screenshot({
+    path: "test-results/invoice-billing-choices.png",
+    fullPage: true,
+  });
+  await page
+    .getByRole("radio", { name: "Down payment (50%)", exact: true })
+    .click();
   await expect(page.locator(".grand-total")).toContainText("Rp847.501");
   await page
     .getByRole("button", { name: "Create invoice draft", exact: true })
@@ -120,8 +146,8 @@ test("invoice split workflow: create, save, issue, revise source, final installm
     .getByRole("link", { name: "Create final installment", exact: true })
     .click();
   await expect(
-    page.getByRole("combobox", { name: "Invoice type", exact: true }),
-  ).toContainText("Final installment (50%)");
+    page.getByRole("radio", { name: "Final installment (50%)", exact: true }),
+  ).toHaveAttribute("aria-checked", "true");
   await expect(page.locator(".grand-total")).toContainText("Rp847.500");
   await page
     .getByRole("button", { name: "Create invoice draft", exact: true })
@@ -192,7 +218,9 @@ test("full invoice prints total, can be voided, and a new billing plan can be cr
   await expect(
     page.getByRole("link", { name: "Open existing invoice", exact: true }),
   ).toHaveAttribute("href", new URL(invoiceUrl).pathname);
-  await selectOption(page, "Invoice type", "Down payment (50%)");
+  await page
+    .getByRole("radio", { name: "Down payment (50%)", exact: true })
+    .click();
   await expect(
     page.getByRole("button", { name: "Create invoice draft", exact: true }),
   ).toBeDisabled();
@@ -209,7 +237,9 @@ test("full invoice prints total, can be voided, and a new billing plan can be cr
   );
   await page.goto(source);
   await page.getByRole("link", { name: "Create invoice", exact: true }).click();
-  await selectOption(page, "Invoice type", "Down payment (50%)");
+  await page
+    .getByRole("radio", { name: "Down payment (50%)", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Create invoice draft", exact: true })
     .click();

@@ -14,7 +14,7 @@ export default function Pagination({
   const pages = Math.max(1, Math.ceil(count / size));
   return (
     <div className="table-footer pagination">
-      <span>
+      <span role="status" aria-live="polite">
         {count
           ? `${page * size + 1}–${Math.min((page + 1) * size, count)} of ${count}`
           : "0 results"}
