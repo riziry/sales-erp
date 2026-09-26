@@ -1,6 +1,6 @@
-# YW Production — Master Data & Quotations
+# sales-erp — Sales workspace
 
-An internal workspace for commercial master data, vendor pricing, production packages, and quotations. Built with Next.js App Router, TypeScript, PostgreSQL, Drizzle, and Tailwind CSS. All application copy and customer document labels are in English. Currency remains IDR and dates use the Asia/Jakarta time zone.
+An internal workspace for commercial master data, vendor pricing, production packages, quotations, invoices, and customer follow-ups. Built with Next.js App Router, TypeScript, PostgreSQL, Drizzle, and Tailwind CSS. All application copy and customer document labels are in English. Currency remains IDR and dates use the Asia/Jakarta time zone.
 
 ## Supabase Auth setup
 
@@ -110,6 +110,14 @@ Open **Invoices → Create invoice**, or choose **Create invoice** from a saved 
 - Issued is a document status, not confirmation of payment. Creating, issuing, or printing an invoice does not send email or record payment receipt.
 - Apply the invoice migration with `npm run db:migrate`. The new `invoices` and `invoice_counters` tables have row-level security enabled, with access through the authenticated application server.
 
+## Sales workflow
+
+Open **Sales overview** for latest-revision pipeline values (after discounts, excluding taxes), decision win rate, and sent offers expiring within seven days or already expired. Values cover all time and do not represent payment receipts.
+
+- **Schedule follow-up** links an internal next step and date to a quotation series. Filter open/due/completed tasks, search by customer or note, complete a task, or reopen it. Tasks remain connected when a quotation is revised and never appear in customer documents. No notifications or emails are sent automatically.
+- **Duplicate** on a saved quotation creates a separate draft with a new number, fresh quotation/validity dates, and an empty event date. Commercial snapshots are copied; the original, its invoices, and its reminders are preserved. Save edits before duplicating.
+- Run `npm run db:migrate` for the `quotation_followups` table. Access remains authenticated server-side, with RLS enabled.
+
 ## Storage and boundaries
 
 - Master tables: `items`, `customers`, `vendors`, `vendor_prices`, `packages`, and `profiles`. Zod validates typed payloads. IDs, SKUs, vendor-price references, and active flags also have relational columns.
@@ -119,7 +127,7 @@ Open **Invoices → Create invoice**, or choose **Create invoice** from a saved 
 - In internal-account mode, sessions store token hashes and expire after eight hours. Five failed sign-in attempts temporarily lock the account for 15 minutes. All internal pages and Server Actions verify the session.
 - The print page uses an explicit server-side customer-field allowlist. Costs, vendor sources, alternative bank accounts, and profit are excluded from its HTML/RSC payload.
 - Inventory, availability, reservations, equipment movements, and warehouse operations are out of scope. An item's optional `external_inventory_item_id` is only an integration reference. Quotation quantities are not compared with YW's or vendors' equipment holdings.
-- Payment tracking, dashboards, reports, multiuser administration, and warehouse integration remain separate future work.
+- Payment tracking, advanced reporting, multiuser administration, and warehouse integration remain separate future work.
 
 Domain logic and calculations live in `lib/domain`, schemas in `lib/db`, and transactions/authentication in `lib/server`. SQL migrations are stored in `drizzle`. After changing the schema, run `npm run db:generate`, review the migration, and apply it with `npm run db:migrate`.
 
@@ -134,6 +142,12 @@ The workspace uses an English interface with light, dark, and system themes. App
 
 Catalog data is currently loaded by authenticated Server Components and searched locally. The picker bounds the rendered result list, but database-backed search would be the next scaling step for catalogs too large to load comfortably in the browser.
 
+### Custom controls and number entry
+
+The application is branded **sales-erp**; company identities saved in profiles and documents remain business data. Dropdowns, numeric steppers, date calendars, checkboxes, password visibility, tooltips, and in-app confirmations use themed controls with keyboard support. Price inputs group rupiah automatically (`100000` → `100.000`); a decimal comma (`100.000,50`) preserves exact decimals in server calculations. Scrollbars, the operating system's print/PDF dialog, password-manager UI, and browser tab-close warnings remain browser-managed.
+
+Press **Ctrl/Cmd + K** for quick actions. Page entry, popovers, cards, buttons, and save notifications use brief animations; reduced-motion preferences disable them.
+
 ## Tests
 
 ```sh
@@ -147,7 +161,7 @@ npm run test:e2e
 
 Unit and integration tests use temporary PostgreSQL instances through `embedded-postgres`. E2E tests start a temporary database and the production build on port 3210, using isolated test accounts and data. Both suites leave the configured application database untouched and remove temporary databases afterward. Run as a non-root OS user because PostgreSQL binaries cannot run as root.
 
-Coverage includes invoice creation/issuance/voiding, full versus split billing conflicts, invoice snapshot privacy, installment rounding, and the PAR LED pricing example, quantity 50, discounts, rounding, tax combinations, bank overrides, package costs, cost sources, snapshots, edit conflicts, concurrent numbering/revisions, sign-in/out, unauthenticated Server Actions, customer-safe printing, mobile layout, theme persistence, reduced motion, tutorials, keyboard/focus behavior, multi-selection and pagination with 1,000+ catalog items, and automated WCAG accessibility scans. Browser screenshots/PDFs are written to the Git-ignored `test-results` directory.
+Coverage includes live price formatting and caret behavior, sales follow-ups, duplicate drafts, custom control keyboard behavior, invoice creation/issuance/voiding, full versus split billing conflicts, invoice snapshot privacy, installment rounding, and the PAR LED pricing example, quantity 50, discounts, rounding, tax combinations, bank overrides, package costs, cost sources, snapshots, edit conflicts, concurrent numbering/revisions, sign-in/out, unauthenticated Server Actions, customer-safe printing, mobile layout, theme persistence, reduced motion, tutorials, keyboard/focus behavior, multi-selection and pagination with 1,000+ catalog items, and automated WCAG accessibility scans. Browser screenshots/PDFs are written to the Git-ignored `test-results` directory.
 
 ### Explicit live Supabase verification
 

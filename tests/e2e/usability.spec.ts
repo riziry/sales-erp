@@ -131,9 +131,12 @@ test("large catalogs support search, categories, paging, keyboard, batch add, co
   await expect(dialog).not.toBeVisible();
   await expect(trigger).toBeFocused();
   // New client navigation warns before discarding edits.
-  page.once("dialog", (confirmation) => confirmation.dismiss());
   await page
     .getByRole("link", { name: "All quotations", exact: false })
+    .click();
+  await page
+    .getByRole("dialog", { name: "Leave without saving?" })
+    .getByRole("button", { name: "Cancel", exact: true })
     .click();
   await expect(page).toHaveURL(/\/quotation\/new$/);
   await page.getByRole("button", { name: "Dark mode", exact: true }).click();
@@ -203,7 +206,7 @@ test("master lists paginate and dialogs restore focus, including nested item sea
   await expect(page.locator("tbody tr")).toHaveCount(20);
   await page.getByRole("button", { name: "Next page", exact: true }).click();
   await expect(page.locator(".pagination")).toContainText("Page 2 of");
-  await page.getByLabel("Search records").fill("TEST-1000");
+  await page.getByLabel("Search records", { exact: true }).fill("TEST-1000");
   await expect(page.locator("tbody tr")).toHaveCount(1);
   await page.getByRole("button", { name: "Edit", exact: true }).click();
   await accessible(page);

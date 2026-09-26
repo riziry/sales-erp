@@ -1,3 +1,4 @@
+import { selectOption } from "./controls";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 async function login(page: Page) {
@@ -43,9 +44,7 @@ test("invoice split workflow: create, save, issue, revise source, final installm
   await login(page);
   const quotationUrl = await quotation(page, "Split invoice event");
   await page.getByRole("link", { name: "Create invoice", exact: true }).click();
-  await page
-    .getByLabel("Invoice type", { exact: true })
-    .selectOption("DEPOSIT");
+  await selectOption(page, "Invoice type", "Down payment (50%)");
   await expect(page.locator(".grand-total")).toContainText("Rp847.501");
   await page
     .getByRole("button", { name: "Create invoice draft", exact: true })
@@ -82,8 +81,11 @@ test("invoice split workflow: create, save, issue, revise source, final installm
   expect(
     replay.headers()["x-action-redirect"] || replay.headers().location || "",
   ).toContain("/login");
-  page.once("dialog", (dialog) => dialog.accept());
   await page
+    .getByRole("button", { name: "Issue invoice", exact: true })
+    .click();
+  await page
+    .getByRole("dialog", { name: "Issue this invoice?" })
     .getByRole("button", { name: "Issue invoice", exact: true })
     .click();
   await expect(page.locator(".heading-actions .badge")).toHaveText("Issued");
@@ -117,9 +119,9 @@ test("invoice split workflow: create, save, issue, revise source, final installm
   await page
     .getByRole("link", { name: "Create final installment", exact: true })
     .click();
-  await expect(page.getByLabel("Invoice type", { exact: true })).toHaveValue(
-    "FINAL",
-  );
+  await expect(
+    page.getByRole("combobox", { name: "Invoice type", exact: true }),
+  ).toContainText("Final installment (50%)");
   await expect(page.locator(".grand-total")).toContainText("Rp847.500");
   await page
     .getByRole("button", { name: "Create invoice draft", exact: true })
@@ -190,15 +192,16 @@ test("full invoice prints total, can be voided, and a new billing plan can be cr
   await expect(
     page.getByRole("link", { name: "Open existing invoice", exact: true }),
   ).toHaveAttribute("href", new URL(invoiceUrl).pathname);
-  await page
-    .getByLabel("Invoice type", { exact: true })
-    .selectOption("DEPOSIT");
+  await selectOption(page, "Invoice type", "Down payment (50%)");
   await expect(
     page.getByRole("button", { name: "Create invoice draft", exact: true }),
   ).toBeDisabled();
   await page.goto(invoiceUrl);
-  page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Void invoice", exact: true }).click();
+  await page
+    .getByRole("dialog", { name: "Void this invoice?" })
+    .getByRole("button", { name: "Void invoice", exact: true })
+    .click();
   await expect(page.locator(".heading-actions .badge")).toHaveText("Void");
   await page.goto(invoiceUrl + "/print");
   await expect(page.locator(".document-void")).toContainText(
@@ -206,9 +209,7 @@ test("full invoice prints total, can be voided, and a new billing plan can be cr
   );
   await page.goto(source);
   await page.getByRole("link", { name: "Create invoice", exact: true }).click();
-  await page
-    .getByLabel("Invoice type", { exact: true })
-    .selectOption("DEPOSIT");
+  await selectOption(page, "Invoice type", "Down payment (50%)");
   await page
     .getByRole("button", { name: "Create invoice draft", exact: true })
     .click();

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Menu,
+  ChartNoAxesCombined,
   ChevronDown,
   FileText,
   Receipt,
@@ -18,6 +19,7 @@ const groups = [
   {
     label: "WORKSPACE",
     links: [
+      { href: "/sales", label: "Sales overview", Icon: ChartNoAxesCombined },
       { href: "/quotation", label: "Quotations", Icon: FileText },
       { href: "/invoice", label: "Invoices", Icon: Receipt },
     ],
@@ -51,6 +53,12 @@ export default function Navigation({ mobile = false }: { mobile?: boolean }) {
             <Link
               key={href}
               href={href}
+              onClick={(event) => {
+                if (mobile && !event.defaultPrevented)
+                  event.currentTarget
+                    .closest("details")
+                    ?.removeAttribute("open");
+              }}
               aria-current={path.startsWith(href) ? "page" : undefined}
               className={`nav-link ${path.startsWith(href) ? "active" : ""}`}
             >
@@ -67,7 +75,7 @@ export default function Navigation({ mobile = false }: { mobile?: boolean }) {
     .flatMap((group) => group.links)
     .find((link) => path.startsWith(link.href));
   return (
-    <details className="mobile-navigation">
+    <details className="mobile-navigation" key={path}>
       <summary>
         <Menu size={18} />
         <span>Menu</span>

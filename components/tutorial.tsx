@@ -227,13 +227,34 @@ export function GuideContent() {
             <ArrowRight size={16} />
           </Link>
         </section>
+        <section className="panel padded guide-chapter">
+          <h2>Keep your sales conversations moving</h2>
+          <p>
+            Open Sales overview to review your pipeline and expiring offers.
+            Schedule a follow-up with a quotation, date, and next step. Complete
+            it after your conversation, or reopen it if more work is needed.
+            Reminders are internal and do not send messages.
+          </p>
+          <div className="tip-box">
+            For a repeat event, open a saved quotation and choose Duplicate. A
+            new draft gets its own number and fresh dates, while the original
+            stays intact. Review the event date, prices, and customer before
+            sending.
+          </div>
+          <Link href="/sales" className="button">
+            Open sales overview
+            <ArrowRight size={16} />
+          </Link>
+        </section>
         <section className="panel padded">
           <h2>Everyday shortcuts</h2>
           <p className="muted">
-            Use Tab to move through controls. In a search dialog, use ↑ / ↓ and
-            Enter to select, or Esc to close. Collapse finished quotation lines
-            to keep your workspace focused. Switch between light, dark, and
-            system appearance in the top bar.
+            Press Ctrl/Cmd + K for quick actions. Prices automatically format as
+            100.000; use a comma for decimals, such as 100.000,50. Use Tab to
+            move through controls. In a search dialog, use ↑ / ↓ and Enter to
+            select, or Esc to close. Collapse finished quotation lines to keep
+            your workspace focused. Switch between light, dark, and system
+            appearance in the top bar.
           </p>
           <p className="muted">
             Only commercial quantities belong here. No stock checks or warehouse

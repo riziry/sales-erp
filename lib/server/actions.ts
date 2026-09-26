@@ -58,7 +58,7 @@ export async function loginAction(_: { error: string }, form: FormData) {
         await supabase.auth.signOut({ scope: "local" });
         return {
           error:
-            "This account does not have access to the YW Production workspace.",
+            "This account does not have access to the sales-erp workspace.",
         };
       }
     } catch (error) {
@@ -181,6 +181,7 @@ export async function quotationAction(input: {
   try {
     const saved = await repo.saveQuotation(database(), input);
     revalidatePath("/quotation", "layout");
+    revalidatePath("/sales");
     return { ok: true as const, id: saved.id, version: saved.version };
   } catch (e) {
     return { ok: false as const, error: message(e) };
@@ -195,6 +196,7 @@ export async function statusAction(
   try {
     await repo.changeStatus(database(), id, version, status);
     revalidatePath("/quotation", "layout");
+    revalidatePath("/sales");
     return { ok: true as const };
   } catch (e) {
     return { ok: false as const, error: message(e) };

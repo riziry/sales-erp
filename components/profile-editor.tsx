@@ -25,6 +25,7 @@ export default function ProfileEditor({ initial }: { initial: Profile }) {
         </div>
       </div>
       <form
+        noValidate
         className="stack"
         onSubmit={(e) => {
           e.preventDefault();
@@ -124,6 +125,7 @@ export default function ProfileEditor({ initial }: { initial: Profile }) {
       <section className="panel padded security-panel">
         <h2>Change password</h2>
         <form
+          noValidate
           onSubmit={(e) => {
             e.preventDefault();
             start(async () => {

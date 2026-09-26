@@ -1,3 +1,4 @@
+import { selectOption } from "./controls";
 import { test, expect, type Page } from "@playwright/test";
 async function login(page: Page) {
   await page.goto("/login");
@@ -78,13 +79,17 @@ test("vendor quotation: save, send, approve, revise, and print without internal 
   await login(page);
   await page.getByRole("link", { name: "Create quotation" }).first().click();
   await pick(page, "Select customer", "PT Event Nusantara");
-  await page.getByLabel("Event / project").fill("Annual Gathering 2026");
-  await page.getByLabel("Event location").fill("Jakarta Convention Center");
+  await page
+    .getByLabel("Event / project", { exact: true })
+    .fill("Annual Gathering 2026");
+  await page
+    .getByLabel("Event location", { exact: true })
+    .fill("Jakarta Convention Center");
   await pick(page, "Add catalog item", "LED-001", true);
   const line = page.locator(".quote-line").first();
   await line.getByLabel("Qty", { exact: true }).fill("20");
   await line.getByLabel("Duration (days)", { exact: true }).fill("2");
-  await line.getByLabel("Cost source").selectOption("VENDOR");
+  await selectOption(line, "Cost source", "Vendor");
   await pick(page, "Vendor price", "Vendor B");
   await expect(page.locator(".profit-box")).toContainText("Rp7.000.000");
   await expect(page.locator(".grand-total")).toContainText("Rp14.000.000");
@@ -173,7 +178,9 @@ test("vendor quotation: save, send, approve, revise, and print without internal 
   });
   await page.goto("/quotation");
   await page.getByRole("button", { name: "Light mode", exact: true }).click();
-  await page.getByLabel("Search quotations").fill("Annual Gathering");
+  await page
+    .getByLabel("Search quotations", { exact: true })
+    .fill("Annual Gathering");
   await expect(page.locator("tbody tr")).toHaveCount(1);
   await page.screenshot({
     path: "test-results/quotation-list.png",
@@ -187,20 +194,26 @@ test("packages, discounts, custom items, missing costs, and manual cost override
 }) => {
   await login(page);
   await page.goto("/quotation/new");
-  await page.getByLabel("Customer / company name").fill("Package Customer");
-  await page.getByLabel("Event / project").fill("Music Festival");
+  await page
+    .getByLabel("Customer / company name", { exact: true })
+    .fill("Package Customer");
+  await page
+    .getByLabel("Event / project", { exact: true })
+    .fill("Music Festival");
   await pick(page, "Add package", "10,000 Watt Sound System");
   const pack = page.locator(".quote-line").first();
   await pack.getByLabel("Qty", { exact: true }).fill("2");
   await pack.getByLabel("Duration (days)", { exact: true }).fill("2");
-  await pack.getByLabel("Cost duration (days)").fill("2");
-  await pack.getByLabel("Component name").fill("Custom lighting");
-  await pack.getByLabel("Cost per unit").fill("100000");
-  await expect(pack.getByLabel("Cost source")).toHaveValue("CUSTOM");
+  await pack.getByLabel("Cost duration (days)", { exact: true }).fill("2");
+  await pack
+    .getByLabel("Component name", { exact: true })
+    .fill("Custom lighting");
+  await pack.getByLabel("Cost per unit", { exact: true }).fill("100000");
+  await expect(
+    pack.getByRole("combobox", { name: "Cost source", exact: true }),
+  ).toContainText("Custom / manual");
   await pack.getByLabel("Item discount value", { exact: true }).fill("10");
-  await page
-    .getByLabel("Overall discount", { exact: true })
-    .selectOption("AMOUNT");
+  await selectOption(page, "Overall discount", "Rupiah (Rp)");
   await page
     .getByLabel("Overall discount value", { exact: true })
     .fill("1000000");
@@ -209,9 +222,11 @@ test("packages, discounts, custom items, missing costs, and manual cost override
   await page.getByRole("button", { name: "Custom item", exact: false }).click();
   const custom = page.locator(".quote-line").nth(1);
   await custom.getByLabel("Item name", { exact: true }).fill("Transport");
-  await custom.getByLabel("Selling price per unit").fill("500000");
-  await custom.getByLabel("Selling price basis").selectOption("ONE_TIME");
-  await custom.getByLabel("Cost basis").selectOption("ONE_TIME");
+  await custom
+    .getByLabel("Selling price per unit", { exact: true })
+    .fill("500000");
+  await selectOption(custom, "Selling price basis", "Once / event");
+  await selectOption(custom, "Cost basis", "Once / event");
   await page
     .getByRole("button", { name: "Save draft", exact: true })
     .first()
@@ -223,7 +238,7 @@ test("packages, discounts, custom items, missing costs, and manual cost override
   await page
     .locator(".quote-line")
     .nth(1)
-    .getByLabel("Cost per unit")
+    .getByLabel("Cost per unit", { exact: true })
     .fill("0");
   await page
     .getByRole("button", { name: "Save draft", exact: true })
@@ -244,7 +259,7 @@ test("packages, discounts, custom items, missing costs, and manual cost override
   await expect(page.locator(".paper")).toContainText("Rp17.500.000");
   await page.goto(url);
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(page.getByLabel("Package name")).toBeVisible();
+  await expect(page.getByLabel("Package name", { exact: true })).toBeVisible();
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth > window.innerWidth,
   );
@@ -264,13 +279,19 @@ test("master item CRUD, vendor comparison, packages, and profile settings", asyn
   const dialog = page.getByRole("dialog");
   await dialog.getByLabel("Name", { exact: true }).fill("Wireless Microphone");
   await dialog.getByLabel("SKU", { exact: true }).fill("MIC-001");
-  await dialog.getByLabel("Default selling price").fill("200000");
   await dialog
-    .getByLabel("Internal reference cost (leave blank if unknown)")
+    .getByLabel("Default selling price", { exact: true })
+    .fill("200000");
+  await dialog
+    .getByLabel("Internal reference cost (leave blank if unknown)", {
+      exact: true,
+    })
     .fill("50000");
   await dialog.getByRole("button", { name: "Save changes" }).click();
   await expect(dialog).not.toBeVisible();
-  await page.getByLabel("Search records").fill("Wireless Microphone");
+  await page
+    .getByLabel("Search records", { exact: true })
+    .fill("Wireless Microphone");
   const row = page.getByRole("row").filter({ hasText: "Wireless Microphone" });
   await expect(row).toBeVisible();
   await row.getByRole("button", { name: "Edit", exact: true }).click();
@@ -283,10 +304,10 @@ test("master item CRUD, vendor comparison, packages, and profile settings", asyn
     .getByRole("button", { name: "Save changes" })
     .click();
   await expect(row).not.toBeVisible();
-  await page.getByLabel("Filter active status").selectOption("inactive");
+  await selectOption(page, "Filter active status", "Inactive");
   await expect(row).toBeVisible();
   await page.goto("/master/items");
-  await page.getByLabel("Search records").fill("PAR LED");
+  await page.getByLabel("Search records", { exact: true }).fill("PAR LED");
   await page
     .getByRole("row")
     .filter({ hasText: "PAR LED" })
@@ -303,17 +324,17 @@ test("master item CRUD, vendor comparison, packages, and profile settings", asyn
     .fill("Lighting Package");
   await page
     .getByRole("dialog")
-    .getByLabel("Default selling price")
+    .getByLabel("Default selling price", { exact: true })
     .fill("2500000");
   await page.getByRole("button", { name: "Component", exact: false }).click();
   await pick(page, "Component 1", "PAR LED 54 RGBW");
-  await page.getByLabel("Qty per package").fill("8");
+  await page.getByLabel("Qty per package", { exact: true }).fill("8");
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(
     page.getByRole("row").filter({ hasText: "Lighting Package" }),
   ).toBeVisible();
   await page.goto("/profile");
-  await page.getByLabel("VAT rate (PPN, %)").fill("12");
+  await page.getByLabel("VAT rate (PPN, %)", { exact: true }).fill("12");
   await page.getByRole("button", { name: "Save profile", exact: true }).click();
   await expect(page.getByRole("status")).toContainText("successfully");
   await page.goto("/quotation/new");

@@ -17,6 +17,9 @@
     "db:setup-supabase": "tsx scripts/setup-supabase.ts"
   },
   "dependencies": {
+    "@radix-ui/react-popover": "^1.1.23",
+    "@radix-ui/react-select": "^2.3.7",
+    "@radix-ui/react-tooltip": "^1.2.16",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.1",
     "decimal.js": "^10.6.0",
@@ -25,6 +28,7 @@
     "next": "16.3.6",
     "pg": "^8.23.0",
     "react": "19.2.8",
+    "react-day-picker": "^10.0.1",
     "react-dom": "19.2.8",
     "server-only": "^0.0.1",
     "zod": "^4.6.5"

@@ -93,6 +93,7 @@ export default function CostEditor({
         )}
         <Field
           label="Cost per unit"
+          currency
           type="number"
           value={cost.amount ?? ""}
           placeholder="Unknown"

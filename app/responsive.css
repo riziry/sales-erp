@@ -1,0 +1,998 @@
+/* Responsive workspace rules are screen-only so A4 printing stays independent. */
+.document-action-bar {
+  display: none;
+}
+
+@media screen {
+  .desktop-navigation {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .sidebar > .brand,
+  .sidebar-bottom {
+    flex-shrink: 0;
+  }
+  .sidebar-bottom {
+    margin-top: auto;
+  }
+  .page-heading > div,
+  .section-heading > *,
+  .summary-row > *,
+  .sales-banner > div {
+    min-width: 0;
+  }
+  .page-heading h1,
+  .page-heading p,
+  .summary-row,
+  .notice,
+  .inset,
+  .grand-total strong {
+    overflow-wrap: anywhere;
+  }
+  .editor-body,
+  .editor-layout > *,
+  .form-grid > *,
+  .discount-field > *,
+  .sales-columns > * {
+    min-width: 0;
+  }
+  .table-scroll {
+    max-width: 100%;
+  }
+  .record-table {
+    table-layout: fixed;
+  }
+  .record-table th,
+  .record-table td {
+    overflow-wrap: anywhere;
+  }
+  .record-table th {
+    white-space: normal;
+  }
+  .record-table th:first-child {
+    width: 25%;
+  }
+  .record-table th:last-child {
+    width: 80px;
+  }
+  .record-table .amount {
+    white-space: normal;
+    font-variant-numeric: tabular-nums;
+  }
+  .record-table .table-link {
+    flex-wrap: wrap;
+  }
+  .record-table .revision {
+    white-space: nowrap;
+  }
+  .select-content {
+    max-width: calc(100vw - 24px);
+  }
+  .select-item {
+    overflow-wrap: anywhere;
+  }
+  .summary-row {
+    gap: 16px;
+  }
+  .summary-row > strong {
+    text-align: right;
+  }
+  .print-toolbar {
+    flex-wrap: wrap;
+  }
+  .print-toolbar > span {
+    overflow-wrap: anywhere;
+  }
+}
+
+/* Give touch controls enough space, including tablets in landscape. */
+@media screen and (any-pointer: coarse), screen and (max-width: 1100px) {
+  .workspace
+    :is(
+      .button,
+      .icon-button,
+      .select-trigger,
+      .picker-trigger,
+      .quick-actions-trigger
+    ),
+  .modal :is(.button, .icon-button, .select-trigger, .picker-trigger),
+  .login-card .button,
+  .print-toolbar .button {
+    min-height: 44px;
+  }
+  .workspace .icon-button,
+  .modal .icon-button {
+    min-width: 44px;
+  }
+  .stepper-button,
+  .calendar-trigger {
+    min-width: 36px;
+    min-height: 38px;
+    margin: 2px;
+  }
+  .theme-switcher button {
+    min-width: 40px;
+    min-height: 40px;
+    align-items: center;
+    justify-content: center;
+  }
+  .check {
+    min-height: 44px;
+    margin-block: 6px;
+  }
+  .task-check {
+    width: 44px;
+    height: 44px;
+  }
+  .filter-chips button,
+  .task-tabs button {
+    min-height: 40px;
+  }
+  .select-item {
+    min-height: 44px;
+  }
+  .row-arrow {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .field input,
+  .field textarea,
+  .search input,
+  .picker-search input,
+  .task-search {
+    font-size: 16px;
+  }
+  .number-control input,
+  .date-control input,
+  .password-control input {
+    min-height: 44px;
+  }
+}
+
+/* Compact navigation frees up the whole tablet canvas. */
+@media screen and (max-width: 1100px) {
+  html {
+    scroll-padding-top: 86px;
+  }
+  .workspace {
+    display: block;
+  }
+  .sidebar {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    padding: 18px 24px 12px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar .brand {
+    padding: 0 54px 16px 0;
+    align-self: start;
+  }
+  .sidebar-bottom {
+    display: flex;
+    position: absolute;
+    top: 16px;
+    right: 24px;
+    border: 0;
+    padding: 0;
+    margin: 0;
+  }
+  .sidebar-bottom > div {
+    display: none;
+  }
+  .desktop-navigation {
+    display: none;
+  }
+  .mobile-navigation {
+    display: block;
+  }
+  .mobile-navigation summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 12px;
+    min-height: 44px;
+    font-size: 13px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    color: var(--ink);
+    background: var(--surface-alt);
+    list-style: none;
+  }
+  .mobile-navigation summary::-webkit-details-marker {
+    display: none;
+  }
+  .mobile-navigation summary > svg:last-child {
+    flex-shrink: 0;
+    transition: transform 180ms;
+  }
+  .mobile-navigation[open] summary > svg:last-child {
+    transform: rotate(180deg);
+  }
+  .mobile-current {
+    margin-left: auto;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .mobile-navigation nav {
+    display: block;
+    padding: 12px 0 0;
+    overflow: visible;
+  }
+  .mobile-navigation .nav-label {
+    display: none;
+  }
+  .mobile-navigation .nav-group {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    margin: 0;
+  }
+  .mobile-navigation .nav-group + .nav-group {
+    margin-top: 8px;
+  }
+  .mobile-navigation .nav-link {
+    white-space: normal;
+    min-height: 46px;
+    padding: 10px 12px;
+    margin: 0;
+    font-size: 13px;
+  }
+  .workspace-main {
+    margin-left: 0;
+  }
+  .topbar {
+    display: flex;
+    height: auto;
+    min-height: 64px;
+    padding: 10px 24px;
+    gap: 12px;
+  }
+  .topbar-actions {
+    width: auto;
+    flex: 1;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+  .quick-actions-trigger {
+    flex-shrink: 0;
+  }
+  .content {
+    padding: 28px 24px;
+    animation: none;
+  }
+  .page-transition {
+    animation: responsive-enter 200ms ease-out;
+  }
+  .app-footer {
+    padding-inline: 24px;
+  }
+  .page-heading {
+    flex-wrap: wrap;
+    align-items: start;
+  }
+  .page-heading > div:first-child {
+    flex: 1 1 320px;
+  }
+  .page-heading .heading-actions {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+  }
+  .heading-actions {
+    gap: 8px;
+  }
+  .heading-actions .button {
+    flex: 0 1 auto;
+  }
+  .editor-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .quote-summary {
+    position: static;
+    scroll-margin-top: 80px;
+  }
+  .editor-sections {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    max-width: 100%;
+    overscroll-behavior-x: contain;
+  }
+  .editor-sections a {
+    flex-shrink: 0;
+    min-height: 40px;
+    white-space: nowrap;
+  }
+  .revision-bar {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    padding-bottom: 8px;
+  }
+  .revision-bar > * {
+    flex-shrink: 0;
+  }
+  .section-heading {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .line-display-actions {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .table-toolbar {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .table-toolbar .search {
+    flex: 1 1 100%;
+    min-width: 0;
+    max-width: none;
+  }
+  .table-toolbar .select-trigger,
+  .table-toolbar .picker-field {
+    flex: 1 1 180px;
+    min-width: 0;
+    max-width: none;
+  }
+  .table-toolbar > .muted {
+    flex-basis: 100%;
+  }
+  .overview-card {
+    min-width: 0;
+  }
+  .overview-card strong {
+    overflow-wrap: anywhere;
+  }
+  .guide-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .guide-index {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .document-action-bar {
+    display: flex;
+    position: fixed;
+    z-index: 9;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px max(24px, env(safe-area-inset-right))
+      max(12px, env(safe-area-inset-bottom))
+      max(24px, env(safe-area-inset-left));
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -4px 24px #0000000c;
+  }
+  .document-quick-total {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .document-quick-total > span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--muted);
+    font-size: 11px;
+  }
+  .document-quick-total strong {
+    font-size: 17px;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+  .document-action-bar > .button {
+    flex-shrink: 0;
+    min-width: 140px;
+  }
+  .workspace:has(.document-action-bar) .app-footer {
+    padding-bottom: calc(116px + env(safe-area-inset-bottom));
+  }
+  .workspace:has(.document-action-bar) :is(input, textarea, button) {
+    scroll-margin-bottom: 130px;
+  }
+  dialog.modal {
+    max-width: calc(100vw - 48px);
+    max-height: calc(100dvh - 48px);
+    overscroll-behavior: contain;
+  }
+  .modal .form-actions {
+    gap: 10px;
+  }
+  .picker-results {
+    max-height: min(45dvh, 420px);
+  }
+  .picker-option-copy {
+    min-width: 0;
+  }
+  .login-page {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .login-intro,
+  .login-card {
+    padding: 32px;
+    min-width: 0;
+  }
+  .login-intro h1 {
+    font-size: clamp(26px, 3.8vw, 36px);
+  }
+}
+
+@media screen and (min-width: 541px) and (max-width: 900px) {
+  .form-grid,
+  .form-grid.three,
+  .form-grid.four,
+  .form-grid.compact,
+  .form-grid:not(.four):not(.three):not(.compact) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .discount-field {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .add-lines .field {
+    min-width: 180px;
+  }
+}
+
+/* Records turn into readable cards rather than compressed desktop tables. */
+@media screen and (max-width: 760px) {
+  .record-table,
+  .record-table tbody {
+    display: block;
+    width: 100%;
+  }
+  .record-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .record-table tbody {
+    padding: 14px;
+  }
+  .record-table tbody:empty {
+    padding: 0;
+  }
+  .record-table tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 14px;
+    padding: 18px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+  }
+  .record-table tr + tr {
+    margin-top: 12px;
+  }
+  .record-table td {
+    display: block;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+    font-size: 14px;
+    align-self: start;
+    white-space: normal;
+  }
+  .record-table td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 5px;
+    font-size: 11px;
+    font-weight: 450;
+    color: var(--muted);
+  }
+  .record-table .record-primary,
+  .record-table .record-wide {
+    grid-column: 1 / -1;
+  }
+  .record-table .record-primary {
+    padding-bottom: 13px;
+    border-bottom: 1px solid var(--border);
+  }
+  .record-table .record-primary::before,
+  .record-table .record-actions::before {
+    display: none;
+  }
+  .record-table .record-primary .table-link,
+  .record-table .record-primary > strong {
+    font-size: 15px;
+  }
+  .record-table .record-primary small {
+    font-size: 12px;
+  }
+  .record-table .record-actions {
+    justify-self: end;
+    align-self: end;
+    grid-column: 2;
+  }
+  .record-actions .row-arrow,
+  .record-actions .button {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface-alt);
+  }
+  .record-actions .row-arrow {
+    width: 48px;
+  }
+  .record-actions .button {
+    min-width: 72px;
+  }
+  .record-table td.amount {
+    font-size: 17px;
+    color: var(--primary);
+  }
+  .table-footer.pagination {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 16px;
+  }
+  .table-footer.pagination .pagination-controls {
+    margin-left: auto;
+  }
+  .sales-columns {
+    gap: 18px;
+  }
+  .expiry-row {
+    flex-wrap: wrap;
+  }
+  .expiry-row > div:first-child {
+    min-width: 0;
+    flex: 1 1 170px;
+    overflow-wrap: anywhere;
+  }
+  .task-row > div {
+    min-width: 0;
+  }
+  .task-row a {
+    flex-wrap: wrap;
+  }
+  .print-page {
+    padding: 16px;
+  }
+  .print-toolbar > span {
+    flex-basis: 100%;
+    order: 3;
+  }
+  .paper {
+    padding: 24px 18px;
+    min-height: 0;
+  }
+  .document-header {
+    flex-wrap: wrap;
+  }
+  .document-header > div {
+    min-width: 0;
+  }
+  .document-brand {
+    overflow-wrap: anywhere;
+  }
+  .document-number {
+    text-align: left;
+  }
+  .document-info {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+  .document-totals {
+    width: 100%;
+  }
+  .document-table th,
+  .document-table td {
+    padding: 8px 3px;
+  }
+  .document-table th {
+    white-space: normal;
+    font-size: 8px;
+    overflow-wrap: anywhere;
+  }
+  .document-table .amount {
+    white-space: normal;
+  }
+  .document-table {
+    font-size: 9px;
+  }
+  .document-bottom {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+  .document-signature {
+    text-align: left;
+  }
+  .error-page {
+    padding: 36px 20px;
+  }
+}
+
+@media screen and (max-width: 540px) {
+  .sidebar {
+    padding: 14px 16px 10px;
+  }
+  .sidebar-bottom {
+    top: 14px;
+    right: 16px;
+  }
+  .sidebar .brand {
+    padding-bottom: 14px;
+  }
+  .mobile-navigation .nav-group {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .mobile-navigation .nav-link {
+    padding: 10px 8px;
+    font-size: 12px;
+    gap: 8px;
+  }
+  .mobile-current {
+    max-width: 58%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 11px;
+  }
+  .topbar {
+    padding: 8px 16px;
+    gap: 8px;
+  }
+  .topbar-actions {
+    gap: 8px;
+    justify-content: space-between;
+  }
+  .quick-actions-trigger {
+    width: 44px;
+    height: 44px;
+    justify-content: center;
+    padding: 8px;
+  }
+  .quick-actions-trigger > span,
+  .quick-actions-trigger kbd {
+    display: none;
+  }
+  .topbar .theme-switcher {
+    padding: 2px;
+  }
+  .theme-switcher button {
+    min-width: 36px;
+    padding: 6px;
+  }
+  .topbar-actions > .button {
+    padding: 8px;
+    gap: 6px;
+    font-size: 12px;
+  }
+  .content {
+    padding: 24px 16px;
+  }
+  .page-heading {
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .page-heading > div:first-child {
+    flex: 0 1 auto;
+    width: 100%;
+  }
+  .page-heading h1 {
+    font-size: 26px;
+    letter-spacing: -0.7px;
+  }
+  .page-heading > .button {
+    width: 100%;
+  }
+  .heading-actions {
+    width: 100%;
+  }
+  .heading-actions > .badge {
+    flex-basis: 100%;
+    width: max-content;
+  }
+  .heading-actions .button {
+    flex: 1 1 auto;
+  }
+  .panel.padded {
+    padding: 18px 16px;
+  }
+  .form-grid,
+  .form-grid.three,
+  .form-grid.four,
+  .form-grid.compact,
+  .form-grid:not(.four):not(.three):not(.compact),
+  .discount-field {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .line-content {
+    padding: 16px 12px;
+  }
+  .cost-editor,
+  .package-part {
+    padding: 14px 12px;
+  }
+  .line-toggle {
+    min-width: 0;
+    flex-basis: 100%;
+  }
+  .line-tools {
+    margin-top: 4px;
+  }
+  .line-total {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .line-total strong {
+    overflow-wrap: anywhere;
+  }
+  .add-lines > .button {
+    width: 100%;
+  }
+  .add-lines .field {
+    min-width: 100%;
+  }
+  .line-display-actions {
+    align-items: stretch;
+  }
+  .line-display-actions .button {
+    flex: 1 1 auto;
+  }
+  .component-template {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .component-template .button {
+    grid-column: auto;
+    justify-self: end;
+  }
+  .form-actions {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .form-actions .button {
+    flex: 1 1 auto;
+  }
+  .table-toolbar {
+    padding: 16px;
+  }
+  .table-toolbar .select-trigger,
+  .table-toolbar .picker-field {
+    flex-basis: 100%;
+  }
+  .overview-grid {
+    gap: 10px;
+  }
+  .overview-card {
+    padding: 14px;
+  }
+  .overview-card > span {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .overview-card small {
+    flex-wrap: wrap;
+  }
+  .sales-banner {
+    padding: 18px 16px;
+  }
+  .sales-metrics .overview-card strong {
+    font-size: 18px;
+  }
+  .task-tabs {
+    gap: 2px;
+  }
+  .task-tabs button {
+    padding-inline: 4px;
+  }
+  .hint-card > div {
+    min-width: 0;
+    flex-basis: 100%;
+  }
+  .hint-card > a {
+    margin-left: 0;
+  }
+  .welcome-actions .button {
+    flex: 1 1 auto;
+  }
+  .guide-index {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .document-action-bar {
+    gap: 10px;
+    padding: 10px max(16px, env(safe-area-inset-right))
+      max(10px, env(safe-area-inset-bottom))
+      max(16px, env(safe-area-inset-left));
+  }
+  .document-action-bar > .button {
+    min-width: 0;
+    max-width: 48%;
+    padding-inline: 12px;
+    font-size: 12px;
+  }
+  .document-quick-total > span {
+    font-size: 10px;
+  }
+  .document-quick-total strong {
+    font-size: 16px;
+  }
+  .app-footer {
+    padding: 20px 16px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  dialog.modal {
+    width: 100%;
+    max-width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    padding: max(16px, env(safe-area-inset-top)) 16px
+      max(16px, env(safe-area-inset-bottom));
+  }
+  dialog.confirm-modal,
+  dialog.tour-modal {
+    height: auto;
+    max-width: calc(100vw - 24px);
+    max-height: calc(100dvh - 24px);
+    margin: auto;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+  }
+  .modal-title {
+    position: sticky;
+    top: -16px;
+    z-index: 2;
+    background: var(--surface);
+    padding-block: 12px;
+    margin-top: -12px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-title h2 {
+    font-size: 18px;
+  }
+  .modal .form-actions {
+    bottom: -16px;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+  dialog.picker-modal[open] {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .picker-modal > :not(.picker-results) {
+    flex-shrink: 0;
+  }
+  .picker-help {
+    margin-bottom: 12px;
+  }
+  .picker-results {
+    flex: 1 1 auto;
+    max-height: none;
+    min-height: 0;
+  }
+  .picker-option-copy {
+    min-width: 0;
+  }
+  .picker-meta {
+    margin-block: 12px 8px;
+  }
+  .picker-footer {
+    margin-top: 12px;
+    padding-top: 12px;
+    gap: 10px;
+  }
+  .picker-footer > .button {
+    width: 100%;
+  }
+  .picker-option {
+    gap: 8px;
+    padding: 14px 8px;
+  }
+  .picker-detail {
+    padding-left: 27px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .filter-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .filter-chips button {
+    flex-shrink: 0;
+  }
+  .login-page {
+    display: block;
+  }
+  .login-intro {
+    padding: 26px 24px 12px;
+  }
+  .login-intro h1 {
+    font-size: 26px;
+  }
+  .login-intro > p:not(.eyebrow) {
+    font-size: 13px;
+  }
+  .login-card {
+    padding: 24px;
+  }
+  .login-theme {
+    margin-bottom: 20px;
+  }
+  .toast {
+    bottom: max(14px, env(safe-area-inset-bottom));
+  }
+  body:has(.document-action-bar) .toast {
+    bottom: calc(90px + env(safe-area-inset-bottom));
+  }
+}
+
+/* Keep dialog actions reachable in landscape and while the keyboard is open. */
+@media screen and (max-height: 540px) and (max-width: 1100px) {
+  dialog.modal {
+    max-height: calc(100dvh - 16px);
+    margin: 8px auto;
+  }
+  dialog.picker-modal[open] {
+    height: calc(100dvh - 16px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .picker-modal .picker-help,
+  .picker-modal .filter-chips {
+    display: none;
+  }
+  .picker-modal .modal-title {
+    margin-bottom: 6px;
+  }
+  .picker-modal .picker-results {
+    min-height: 0;
+    flex: 1 1 auto;
+    max-height: none;
+  }
+  .picker-modal .picker-footer {
+    flex-wrap: nowrap;
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+  .picker-footer > .button {
+    width: auto;
+  }
+  .document-action-bar {
+    display: none;
+  }
+}
+@keyframes responsive-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mobile-navigation summary > svg:last-child,
+  .page-transition {
+    animation: none !important;
+    transition: none !important;
+  }
+}

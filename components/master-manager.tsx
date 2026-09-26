@@ -1,4 +1,5 @@
 "use client";
+import { SelectControl } from "./ui/select";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Area, BasisField, Check, Field, Notice } from "./fields";
@@ -143,38 +144,47 @@ export default function MasterManager({
               }}
             />
           </div>
-          <select
-            aria-label="Filter active status"
+          <SelectControl
+            label="Filter active status"
             value={filter}
-            onChange={(e) => {
-              setFilter(e.target.value);
+            onChange={(value) => {
+              setFilter(value);
               setPage(0);
             }}
-          >
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="all">All statuses</option>
-          </select>
+            choices={[
+              { value: "active", label: "Active" },
+              { value: "inactive", label: "Inactive" },
+              { value: "all", label: "All statuses" },
+            ]}
+          />
           <span className="muted">{shown.length} records</span>
         </div>
         <div className="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>{kind === "prices" ? "Item / vendor" : "Name"}</th>
-                <th>Detail</th>
-                <th>
+          <table className="record-table" role="table">
+            <thead role="rowgroup">
+              <tr role="row">
+                <th scope="col" role="columnheader">
+                  {kind === "prices" ? "Item / vendor" : "Name"}
+                </th>
+                <th scope="col" role="columnheader">
+                  Detail
+                </th>
+                <th scope="col" role="columnheader">
                   {kind === "items" || kind === "packages"
                     ? "Selling price"
                     : kind === "prices"
                       ? "Vendor price"
                       : "Contact"}
                 </th>
-                <th>Status</th>
-                <th />
+                <th scope="col" role="columnheader">
+                  Status
+                </th>
+                <th scope="col" role="columnheader">
+                  <span className="sr-only">Actions</span>
+                </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody role="rowgroup">
               {shown
                 .slice(
                   Math.min(
@@ -189,12 +199,16 @@ export default function MasterManager({
                     20,
                 )
                 .map((r) => (
-                  <tr key={r.id}>
-                    <td>
+                  <tr role="row" key={r.id}>
+                    <td
+                      role="cell"
+                      data-label={kind === "prices" ? "Item / vendor" : "Name"}
+                      className="record-primary"
+                    >
                       <strong>{rowName(r)}</strong>
                       {r.sku ? <small>{String(r.sku)}</small> : null}
                     </td>
-                    <td>
+                    <td role="cell" data-label="Detail" className="record-wide">
                       {kind === "items"
                         ? String(r.category || "—")
                         : kind === "packages"
@@ -203,7 +217,17 @@ export default function MasterManager({
                             ? `${String(r.unit)} · ${r.basis === "DAILY" ? "per day" : "once"}`
                             : String(r.email || "—")}
                     </td>
-                    <td>
+                    <td
+                      role="cell"
+                      data-label={
+                        kind === "items" || kind === "packages"
+                          ? "Selling price"
+                          : kind === "prices"
+                            ? "Vendor price"
+                            : "Contact"
+                      }
+                      className="record-wide"
+                    >
                       {kind === "prices" ? (
                         rupiah(String(r.price))
                       ) : kind === "items" || kind === "packages" ? (
@@ -219,12 +243,12 @@ export default function MasterManager({
                         String(r.contact || "—")
                       )}
                     </td>
-                    <td>
+                    <td role="cell" data-label="Status">
                       <span className={`badge ${r.active ? "green" : ""}`}>
                         {r.active ? "Active" : "Inactive"}
                       </span>
                     </td>
-                    <td>
+                    <td role="cell" data-label="" className="record-actions">
                       <button className="button small" onClick={() => edit(r)}>
                         Edit
                       </button>
@@ -265,6 +289,7 @@ export default function MasterManager({
           busy={pending}
         >
           <form
+            noValidate
             onSubmit={(e) => {
               e.preventDefault();
               setError("");
@@ -313,6 +338,7 @@ export default function MasterManager({
                   />
                   <Field
                     label="Internal reference cost (leave blank if unknown)"
+                    currency
                     type="number"
                     value={value("internalCost")}
                     onChange={(v) => update("internalCost", v || null)}
@@ -335,6 +361,7 @@ export default function MasterManager({
                 <>
                   <Field
                     label="Default selling price"
+                    currency
                     type="number"
                     value={value("sellingPrice")}
                     onChange={(v) => update("sellingPrice", v)}
@@ -409,6 +436,7 @@ export default function MasterManager({
                   </Select>
                   <Field
                     label="Vendor price"
+                    currency
                     type="number"
                     value={value("price")}
                     onChange={(v) => update("price", v)}

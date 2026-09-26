@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition } from "react";
 import {
   Area,
   BasisField,
@@ -12,6 +12,7 @@ import {
 } from "./fields";
 import { Picker, SearchSelect as Select } from "./search-picker";
 import {
+  Copy,
   ChevronDown,
   ChevronUp,
   ArrowUp,
@@ -22,6 +23,10 @@ import {
   Circle,
   LockKeyhole,
 } from "lucide-react";
+import { useUnsavedChanges } from "./use-unsaved-changes";
+import { useUI } from "./ui-provider";
+import { duplicateQuotationAction } from "@/lib/server/sales-actions";
+import DocumentActionBar from "./document-action-bar";
 import CostEditor from "./cost-editor";
 import { quotationAction, statusAction } from "@/lib/server/actions";
 import { calculate, rupiah } from "@/lib/domain/calculate";
@@ -67,42 +72,8 @@ export default function QuotationEditor({
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const historical = !!saved && saved.revision !== saved.latestRevision;
-  useEffect(() => {
-    const guard = (e: BeforeUnloadEvent) => {
-      if (dirty) e.preventDefault();
-    };
-    const navigationGuard = (event: MouseEvent) => {
-      const link = (event.target as Element).closest?.(
-        "a[href]",
-      ) as HTMLAnchorElement | null;
-      if (
-        !dirty ||
-        !link ||
-        link.getAttribute("aria-disabled") === "true" ||
-        link.target === "_blank" ||
-        event.ctrlKey ||
-        event.metaKey ||
-        link.origin !== window.location.origin ||
-        (link.pathname === window.location.pathname && link.hash)
-      )
-        return;
-      if (
-        link.href !== window.location.href &&
-        !window.confirm(
-          "You have unsaved changes. Leave this quotation without saving?",
-        )
-      ) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-    };
-    document.addEventListener("click", navigationGuard, true);
-    window.addEventListener("beforeunload", guard);
-    return () => {
-      window.removeEventListener("beforeunload", guard);
-      document.removeEventListener("click", navigationGuard, true);
-    };
-  }, [dirty]);
+  const { notify } = useUI();
+  useUnsavedChanges(dirty, "quotation");
   function change(next: Quotation) {
     setData(next);
     setDirty(true);
@@ -182,6 +153,7 @@ export default function QuotationEditor({
       else {
         setDirty(false);
         setMessage("Quotation saved successfully.");
+        notify("Quotation saved successfully.");
         router.push(`/quotation/${result.id}`);
         router.refresh();
       }
@@ -226,6 +198,29 @@ export default function QuotationEditor({
               </Link>
             </>
           )}
+          {saved && (
+            <button
+              className="button"
+              disabled={dirty || pending}
+              onClick={() =>
+                start(async () => {
+                  const result = await duplicateQuotationAction(
+                    saved.id,
+                    saved.version,
+                  );
+                  if (!result.ok) {
+                    setError(result.error);
+                    return;
+                  }
+                  notify("Duplicated as a new draft");
+                  router.push(`/quotation/${result.id}`);
+                })
+              }
+            >
+              <Copy size={16} />
+              Duplicate
+            </button>
+          )}
           {saved && !historical && saved.status !== "REJECTED" && (
             <Link
               className={`button ${dirty || pending || !data.lines.length ? "disabled-link" : ""}`}
@@ -234,11 +229,6 @@ export default function QuotationEditor({
                 if (dirty || pending || !data.lines.length)
                   event.preventDefault();
               }}
-              title={
-                dirty
-                  ? "Save your changes before creating an invoice"
-                  : "Create an invoice from this saved quotation"
-              }
               href={`/invoice/new?quotation=${saved.id}`}
             >
               Create invoice
@@ -642,6 +632,7 @@ export default function QuotationEditor({
                     />
                     <Field
                       label="Selling price per unit"
+                      currency
                       type="number"
                       value={line.sellingPrice}
                       onChange={(v) => lineChange(line.id, { sellingPrice: v })}
@@ -1056,6 +1047,20 @@ export default function QuotationEditor({
           </section>
         </aside>
       </div>
+      <DocumentActionBar
+        total={totals?.total ?? null}
+        label={dirty ? "Unsaved · quotation total" : "Quotation total"}
+        reviewId="quote-review"
+        onSave={historical ? undefined : save}
+        disabled={pending}
+        saveLabel={
+          pending
+            ? "Saving…"
+            : saved && saved.status !== "DRAFT"
+              ? "Save revision"
+              : "Save draft"
+        }
+      />
     </>
   );
 }

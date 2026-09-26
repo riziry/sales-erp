@@ -1,4 +1,5 @@
 "use client";
+import { SelectControl } from "./ui/select";
 import Link from "next/link";
 import { useState } from "react";
 import {
@@ -124,21 +125,21 @@ export default function QuotationList({
               }}
             />
           </div>
-          <select
-            aria-label="Quotation status"
+          <SelectControl
+            label="Quotation status"
             value={status}
-            onChange={(e) => {
-              setStatus(e.target.value);
+            onChange={(value) => {
+              setStatus(value);
               setPage(0);
             }}
-          >
-            <option value="">All statuses</option>
-            {Object.entries(statusNames).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
-          </select>
+            choices={[
+              { value: "", label: "All statuses" },
+              ...Object.entries(statusNames).map(([value, label]) => ({
+                value,
+                label,
+              })),
+            ]}
+          />
           <Picker
             label="Filter by customer"
             value={customer}
@@ -158,40 +159,64 @@ export default function QuotationList({
           )}
         </div>
         <div className="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>Quotation / event</th>
-                <th>Customer</th>
-                <th>Date</th>
-                <th>Quotation total</th>
-                <th>Status</th>
-                <th>
+          <table className="record-table" role="table">
+            <thead role="rowgroup">
+              <tr role="row">
+                <th scope="col" role="columnheader">
+                  Quotation / event
+                </th>
+                <th scope="col" role="columnheader">
+                  Customer
+                </th>
+                <th scope="col" role="columnheader">
+                  Date
+                </th>
+                <th scope="col" role="columnheader">
+                  Quotation total
+                </th>
+                <th scope="col" role="columnheader">
+                  Status
+                </th>
+                <th scope="col" role="columnheader">
                   <span className="sr-only">Open quotation</span>
                 </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody role="rowgroup">
               {filtered.slice(page * 20, (page + 1) * 20).map((row) => (
-                <tr key={row.id}>
-                  <td>
+                <tr role="row" key={row.id}>
+                  <td
+                    role="cell"
+                    data-label="Quotation / event"
+                    className="record-primary"
+                  >
                     <Link className="table-link" href={`/quotation/${row.id}`}>
                       {row.number}
                       <span className="revision">R{row.revision}</span>
                     </Link>
                     <small>{row.event}</small>
                   </td>
-                  <td>{row.customer}</td>
-                  <td className="date-cell">{row.date}</td>
-                  <td className="amount">{rupiah(row.total)}</td>
-                  <td>
+                  <td role="cell" data-label="Customer" className="record-wide">
+                    {row.customer}
+                  </td>
+                  <td role="cell" data-label="Date" className="date-cell">
+                    {row.date}
+                  </td>
+                  <td
+                    role="cell"
+                    data-label="Quotation total"
+                    className="amount record-wide"
+                  >
+                    {rupiah(row.total)}
+                  </td>
+                  <td role="cell" data-label="Status">
                     <span
                       className={`badge status-${row.status.toLowerCase()}`}
                     >
                       {statusNames[row.status]}
                     </span>
                   </td>
-                  <td>
+                  <td role="cell" data-label="" className="record-actions">
                     <Link
                       href={`/quotation/${row.id}`}
                       className="row-arrow"

@@ -1,3 +1,7 @@
+import Brand from "@/components/brand";
+import QuickActions from "@/components/quick-actions";
+import PageTransition from "@/components/page-transition";
+import Hint from "@/components/ui/tooltip";
 import Link from "next/link";
 import ThemeSwitcher from "@/components/theme-switcher";
 import { TutorialButton } from "@/components/tutorial";
@@ -18,12 +22,7 @@ export default async function Workspace({
       </a>
       <aside className="sidebar">
         <Link href="/quotation" className="brand">
-          <span className="brand-mark">
-            yw<span>•</span>
-          </span>
-          <span>
-            PRODUCTION<small>Commercial workspace</small>
-          </span>
+          <Brand />
         </Link>
 
         <div className="desktop-navigation">
@@ -31,37 +30,33 @@ export default async function Workspace({
         </div>
         <Navigation mobile />
         <div className="sidebar-bottom">
-          <div className="account-avatar">YW</div>
+          <div className="account-avatar">SE</div>
           <div>
             <strong>Internal account</strong>
-            <small>YW Production</small>
+            <small>sales-erp</small>
           </div>
           <form action={logoutAction}>
-            <button
-              className="icon-button"
-              title="Sign out"
-              aria-label="Sign out"
-            >
-              <LogOut size={18} />
-            </button>
+            <Hint text="Sign out">
+              <button className="icon-button" aria-label="Sign out">
+                <LogOut size={18} />
+              </button>
+            </Hint>
           </form>
         </div>
       </aside>
       <div className="workspace-main">
         <header className="topbar">
-          <span>
-            YW Production <span className="muted">/ Commercial</span>
-          </span>
+          <QuickActions />
           <div className="topbar-actions">
             <ThemeSwitcher />
             <TutorialButton />
           </div>
         </header>
         <main id="main-content" className="content" tabIndex={-1}>
-          {children}
+          <PageTransition>{children}</PageTransition>
         </main>
         <footer className="app-footer">
-          <span>YW Production · Quotation & costing</span>
+          <span>sales-erp · Quotation & costing</span>
           <Link href="/help">
             Need a hand? Open the guide <ArrowUpRight size={14} />
           </Link>

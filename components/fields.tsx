@@ -1,6 +1,10 @@
 "use client";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { Check as CheckIcon, Eye, EyeOff } from "lucide-react";
 import type { Basis, Discount } from "@/lib/domain/model";
+import { SelectControl, selectChoices } from "./ui/select";
+import NumberInput from "./ui/number-input";
+import DateInput from "./ui/date-input";
 export function Field({
   label,
   value,
@@ -9,17 +13,25 @@ export function Field({
   placeholder,
   required = false,
   readOnly = false,
+  currency = false,
+  min,
+  max,
 }: {
   label: string;
   value: string;
-  onChange: (v: string) => void;
+  onChange: (value: string) => void;
   type?: string;
   placeholder?: string;
   required?: boolean;
   readOnly?: boolean;
+  currency?: boolean;
+  min?: number;
+  max?: number;
 }) {
+  const [visible, setVisible] = useState(false);
+  const common = { label, value, onChange, required, readOnly, placeholder };
   return (
-    <label className="field">
+    <div className="field">
       <span>
         {label}
         {required && (
@@ -29,18 +41,36 @@ export function Field({
           </span>
         )}
       </span>
-      <input
-        aria-label={label}
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        required={required}
-        readOnly={readOnly}
-        step={type === "number" ? "any" : undefined}
-        min={type === "number" ? "0" : undefined}
-      />
-    </label>
+      {type === "number" ? (
+        <NumberInput {...common} currency={currency} min={min} max={max} />
+      ) : type === "date" ? (
+        <DateInput {...common} />
+      ) : (
+        <div
+          className={type === "password" ? "password-control" : "text-control"}
+        >
+          <input
+            aria-label={label}
+            type={type === "password" && visible ? "text" : type}
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            placeholder={placeholder}
+            required={required}
+            readOnly={readOnly}
+          />
+          {type === "password" && (
+            <button
+              type="button"
+              className="icon-button"
+              aria-label={`${visible ? "Hide" : "Show"} ${label.toLowerCase()}`}
+              onClick={() => setVisible(!visible)}
+            >
+              {visible ? <EyeOff size={17} /> : <Eye size={17} />}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 export function Area({
@@ -50,7 +80,7 @@ export function Area({
 }: {
   label: string;
   value: string;
-  onChange: (v: string) => void;
+  onChange: (value: string) => void;
 }) {
   return (
     <label className="field">
@@ -58,7 +88,7 @@ export function Area({
       <textarea
         aria-label={label}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(event) => onChange(event.target.value)}
         rows={3}
       />
     </label>
@@ -72,20 +102,19 @@ export function Select({
 }: {
   label: string;
   value: string;
-  onChange: (v: string) => void;
+  onChange: (value: string) => void;
   children: ReactNode;
 }) {
   return (
-    <label className="field">
+    <div className="field">
       <span>{label}</span>
-      <select
-        aria-label={label}
+      <SelectControl
+        label={label}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        {children}
-      </select>
-    </label>
+        onChange={onChange}
+        choices={selectChoices(children)}
+      />
+    </div>
   );
 }
 export function Check({
@@ -95,15 +124,18 @@ export function Check({
 }: {
   label: string;
   checked: boolean;
-  onChange: (v: boolean) => void;
+  onChange: (value: boolean) => void;
 }) {
   return (
     <label className="check">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-      />
+      <span className="checkbox-control">
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(event) => onChange(event.target.checked)}
+        />
+        <CheckIcon size={13} aria-hidden="true" />
+      </span>
       {label}
     </label>
   );
@@ -115,10 +147,14 @@ export function BasisField({
 }: {
   label: string;
   value: Basis;
-  onChange: (v: Basis) => void;
+  onChange: (value: Basis) => void;
 }) {
   return (
-    <Select label={label} value={value} onChange={(v) => onChange(v as Basis)}>
+    <Select
+      label={label}
+      value={value}
+      onChange={(value) => onChange(value as Basis)}
+    >
       <option value="DAILY">Per day</option>
       <option value="ONE_TIME">Once / event</option>
     </Select>
@@ -131,14 +167,16 @@ export function DiscountField({
 }: {
   label: string;
   value: Discount;
-  onChange: (v: Discount) => void;
+  onChange: (value: Discount) => void;
 }) {
   return (
     <div className="discount-field">
       <Select
         label={label}
         value={value.type}
-        onChange={(v) => onChange({ ...value, type: v as Discount["type"] })}
+        onChange={(type) =>
+          onChange({ ...value, type: type as Discount["type"] })
+        }
       >
         <option value="PERCENT">Percent (%)</option>
         <option value="AMOUNT">Rupiah (Rp)</option>
@@ -146,8 +184,10 @@ export function DiscountField({
       <Field
         label={`${label} value`}
         type="number"
+        currency={value.type === "AMOUNT"}
+        max={value.type === "PERCENT" ? 100 : undefined}
         value={value.value}
-        onChange={(v) => onChange({ ...value, value: v })}
+        onChange={(amount) => onChange({ ...value, value: amount })}
       />
     </div>
   );

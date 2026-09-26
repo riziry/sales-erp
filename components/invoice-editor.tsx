@@ -1,7 +1,10 @@
 "use client";
+import DocumentActionBar from "./document-action-bar";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
+import { useUI } from "./ui-provider";
+import { useUnsavedChanges } from "./use-unsaved-changes";
 import { Area, Field, Notice } from "./fields";
 import {
   invoiceAmounts,
@@ -34,34 +37,8 @@ export default function InvoiceEditor({
   const [error, setError] = useState("");
   const editable = invoice.status === "DRAFT";
   const amount = invoiceAmounts(invoice.document, invoice.kind);
-  useEffect(() => {
-    const unload = (event: BeforeUnloadEvent) => {
-      if (dirty) event.preventDefault();
-    };
-    const navigate = (event: MouseEvent) => {
-      const link = (event.target as Element).closest?.(
-        "a[href]",
-      ) as HTMLAnchorElement | null;
-      if (
-        dirty &&
-        link &&
-        link.target !== "_blank" &&
-        !event.ctrlKey &&
-        !event.metaKey &&
-        link.href !== location.href &&
-        !window.confirm("Leave without saving your invoice changes?")
-      ) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-    };
-    window.addEventListener("beforeunload", unload);
-    document.addEventListener("click", navigate, true);
-    return () => {
-      window.removeEventListener("beforeunload", unload);
-      document.removeEventListener("click", navigate, true);
-    };
-  }, [dirty]);
+  const { confirm, notify } = useUI();
+  useUnsavedChanges(dirty, "invoice");
   function update<K extends keyof InvoiceDetails>(
     key: K,
     value: InvoiceDetails[K],
@@ -80,25 +57,22 @@ export default function InvoiceEditor({
       if (!result.ok) setError(result.error);
       else {
         setDirty(false);
+        notify("Invoice saved successfully.");
         router.refresh();
       }
     });
   }
-  function changeStatus(status: "ISSUED" | "VOID") {
-    if (
-      status === "VOID" &&
-      !window.confirm(
-        "Void this invoice? It will remain visible for reference and cannot be edited or issued.",
-      )
-    )
-      return;
-    if (
-      status === "ISSUED" &&
-      !window.confirm(
-        "Issue this invoice? Its details will be locked. You can still print or void it.",
-      )
-    )
-      return;
+  async function changeStatus(status: "ISSUED" | "VOID") {
+    const accepted = await confirm({
+      title: status === "VOID" ? "Void this invoice?" : "Issue this invoice?",
+      description:
+        status === "VOID"
+          ? "The invoice will remain available for reference, but cannot be edited or issued."
+          : "Issuing locks the invoice details. You can still print it or void it later.",
+      confirmLabel: status === "VOID" ? "Void invoice" : "Issue invoice",
+      danger: status === "VOID",
+    });
+    if (!accepted) return;
     setError("");
     start(async () => {
       const result = await invoiceStatusAction(
@@ -277,7 +251,7 @@ export default function InvoiceEditor({
             </section>
           )}
         </div>
-        <aside className="panel padded quote-summary">
+        <aside className="panel padded quote-summary" id="invoice-review">
           <p className="eyebrow">{invoiceKinds[invoice.kind].toUpperCase()}</p>
           <div className="summary-row">
             <span>Full project total</span>
@@ -360,6 +334,14 @@ export default function InvoiceEditor({
           </div>
         </aside>
       </div>
+      <DocumentActionBar
+        total={amount.total}
+        label={dirty ? "Unsaved · invoice amount" : "Invoice amount"}
+        reviewId="invoice-review"
+        onSave={editable ? save : undefined}
+        disabled={pending || !dirty}
+        saveLabel={pending ? "Saving…" : "Save invoice"}
+      />
     </>
   );
 }

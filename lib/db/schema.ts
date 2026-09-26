@@ -150,3 +150,21 @@ export const invoices = pgTable(
       .where(sql`${table.status} <> 'VOID'`),
   ],
 ).enableRLS();
+
+// Internal sales tasks belong to the quotation series, never to customer documents.
+export const followups = pgTable(
+  "quotation_followups",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    seriesId: uuid("series_id")
+      .notNull()
+      .references(() => quotationSeries.id),
+    note: text("note").notNull(),
+    dueDate: text("due_date").notNull(),
+    done: boolean("done").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("followup_due_idx").on(table.done, table.dueDate)],
+).enableRLS();

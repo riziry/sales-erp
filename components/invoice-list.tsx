@@ -1,4 +1,5 @@
 "use client";
+import { SelectControl } from "./ui/select";
 import Link from "next/link";
 import { useState } from "react";
 import { Plus, Search, Receipt, ArrowUpRight } from "lucide-react";
@@ -67,61 +68,91 @@ export default function InvoiceList({ rows }: { rows: InvoiceRow[] }) {
               }}
             />
           </div>
-          <select
-            aria-label="Invoice status"
+          <SelectControl
+            label="Invoice status"
             value={status}
-            onChange={(event) => {
-              setStatus(event.target.value);
+            onChange={(value) => {
+              setStatus(value);
               setPage(0);
             }}
-          >
-            <option value="">All statuses</option>
-            {Object.entries(invoiceStatuses).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
+            choices={[
+              { value: "", label: "All statuses" },
+              ...Object.entries(invoiceStatuses).map(([value, label]) => ({
+                value,
+                label,
+              })),
+            ]}
+          />
         </div>
         <div className="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>Invoice / quotation</th>
-                <th>Customer / event</th>
-                <th>Type</th>
-                <th>Due date</th>
-                <th>Invoice amount</th>
-                <th>Status</th>
-                <th>
+          <table className="record-table" role="table">
+            <thead role="rowgroup">
+              <tr role="row">
+                <th scope="col" role="columnheader">
+                  Invoice / quotation
+                </th>
+                <th scope="col" role="columnheader">
+                  Customer / event
+                </th>
+                <th scope="col" role="columnheader">
+                  Type
+                </th>
+                <th scope="col" role="columnheader">
+                  Due date
+                </th>
+                <th scope="col" role="columnheader">
+                  Invoice amount
+                </th>
+                <th scope="col" role="columnheader">
+                  Status
+                </th>
+                <th scope="col" role="columnheader">
                   <span className="sr-only">Open invoice</span>
                 </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody role="rowgroup">
               {filtered.slice(page * 20, (page + 1) * 20).map((row) => (
-                <tr key={row.id}>
-                  <td>
+                <tr role="row" key={row.id}>
+                  <td
+                    role="cell"
+                    data-label="Invoice / quotation"
+                    className="record-primary"
+                  >
                     <Link className="table-link" href={`/invoice/${row.id}`}>
                       {row.number}
                     </Link>
                     <small>{row.quotationNumber}</small>
                   </td>
-                  <td>
+                  <td
+                    role="cell"
+                    data-label="Customer / event"
+                    className="record-wide"
+                  >
                     {row.customer}
                     <small>{row.event}</small>
                   </td>
-                  <td>{invoiceKinds[row.kind]}</td>
-                  <td className="date-cell">{row.dueDate}</td>
-                  <td className="amount">{rupiah(row.total)}</td>
-                  <td>
+                  <td role="cell" data-label="Type">
+                    {invoiceKinds[row.kind]}
+                  </td>
+                  <td role="cell" data-label="Due date" className="date-cell">
+                    {row.dueDate}
+                  </td>
+                  <td
+                    role="cell"
+                    data-label="Invoice amount"
+                    className="amount record-wide"
+                  >
+                    {rupiah(row.total)}
+                  </td>
+                  <td role="cell" data-label="Status">
                     <span
                       className={`badge status-${row.status.toLowerCase()}`}
                     >
                       {invoiceStatuses[row.status]}
                     </span>
                   </td>
-                  <td>
+                  <td role="cell" data-label="" className="record-actions">
                     <Link
                       className="row-arrow"
                       aria-label={`Open ${row.number}`}
