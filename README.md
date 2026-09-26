@@ -30,7 +30,7 @@ For an existing database, configure a PostgreSQL connection with migration privi
 
 Supabase database connections use `sslmode=verify-full` and `sslrootcert=certs/supabase-root-2021.crt`. The public CA certificate comes from [Supabase](https://supabase-downloads.s3-ap-southeast-1.amazonaws.com/prod/ssl/prod-ca-2021.crt); both the certificate authority and hostname are verified. Include `certs` in deployments. Configure the database URL and allowed Auth UUID in the deployed server environment as well. Secret/service-role keys are not required for application login and are never sent to the browser.
 
-Supabase sessions use HttpOnly cookies. `proxy.ts` refreshes tokens before rendering, while every protected page and action verifies the user with the Auth server and checks the allowed account UUID. Password changes in Profile use Supabase Auth. The implementation follows the [Supabase SSR guide](https://supabase.com/docs/guides/auth/server-side/creating-a-client?framework=nextjs).
+Supabase sessions use HttpOnly cookies. `proxy.ts` refreshes tokens before rendering, while every protected page and action verifies the user with the Auth server and checks the allowed account UUID. Email and password changes in My account use Supabase Auth. The implementation follows the [Supabase SSR guide](https://supabase.com/docs/guides/auth/server-side/creating-a-client?framework=nextjs).
 
 ## Alternative: internal PostgreSQL account
 
@@ -62,7 +62,7 @@ npm run build
 npm start
 ```
 
-Deploy behind HTTPS; production session cookies use `Secure`. Back up PostgreSQL regularly. `ADMIN_PASSWORD` is only used by internal-mode bootstrap and can be removed afterward. Password changes are available in Profile. Business data is not stored in localStorage.
+Deploy behind HTTPS; production session cookies use `Secure`. Back up PostgreSQL regularly. `ADMIN_PASSWORD` is only used by internal-mode bootstrap and can be removed afterward. Password changes are available in My account. Business data is not stored in localStorage.
 
 ## Workflow
 
@@ -75,6 +75,12 @@ Deploy behind HTTPS; production session cookies use `Secure`. Back up PostgreSQL
 7. Use **Print / Save PDF** for an A4 customer document. Disable the browser's default headers and footers for a clean PDF.
 
 Existing customer-entered text and stored document snapshots retain their original content. Changing the interface language does not rewrite historical documents.
+
+### Company logo
+
+In **Company & accounts**, use **Company logo → Upload logo**, then **Save profile**. You can preview, replace, or remove the logo. PNG, JPEG, and WebP files up to 5 MB are accepted; the server decodes and normalizes them to a bounded PNG, preserving transparency and proportions. Logos are stored in the existing company-profile JSON, so no additional database migration or public storage bucket is needed.
+
+New quotations copy the saved logo into their company snapshot and display it in the print/PDF header. Invoices inherit that logo from their quotation. Replacing or removing the company logo does not change existing quotations, revisions, or invoices. Documents created before this feature continue to print without a logo.
 
 ### Pricing, costs, and packages
 
@@ -109,6 +115,18 @@ Open **Invoices → Create invoice**, or choose **Create invoice** from a saved 
 - **Print / PDF** opens a protected A4 document with its invoice number, source quotation/revision, due date, line details, discounts, taxes, installment amount, bank details, and terms. Split invoices clearly distinguish the full project breakdown from the amount billed by that invoice. Internal costs, vendor sourcing, and profit are never stored in the invoice snapshot or sent to its print page.
 - Issued is a document status, not confirmation of payment. Creating, issuing, or printing an invoice does not send email or record payment receipt.
 - Apply the invoice migration with `npm run db:migrate`. The new `invoices` and `invoice_counters` tables have row-level security enabled, with access through the authenticated application server.
+
+## Account and signatures
+
+Open **My account** to set your username, full name, phone number, and signature. **Change email** requires your current password and updates the actual login identity. Supabase changes show an awaiting-confirmation state until the required inbox confirmations are complete; the allowed account UUID stays unchanged. Internal-auth email changes revoke sessions and require signing in with the new address. Password management is available only in My account, and verifies the current password before invalidating sessions. Company settings contain only company, tax, and bank details.
+
+For Supabase email confirmation, set **Authentication → URL Configuration → Site URL** to your application URL and add `https://YOUR_APP_DOMAIN/auth/email-change` to the redirect allowlist (plus your local development callback if needed). The callback handles the PKCE code, checks the allowed account UUID, and returns to My account. Open confirmation links in the browser that requested the change; otherwise complete the confirmations and sign in manually. Use **Check confirmation status** to refresh a pending change. Email confirmation/delivery uses the existing Supabase configuration; no service-role key or confirmation bypass is used. See [Supabase updateUser](https://supabase.com/docs/reference/javascript/auth-updateuser).
+
+**Draw signature** opens a canvas supporting mouse, touch, and pen, with Undo, Clear, and Cancel. Choose **Use signature**, then **Save account** to persist it. Rotating/resizing the screen keeps the drawing; canceling preserves the existing signature. Upload remains available as an alternative.
+
+Signature uploads accept PNG, JPEG, or WebP up to 5 MB. The server verifies and decodes the image, removes metadata, resizes it to fit 800 × 320, and stores a bounded PNG in the private `account_profiles` table. No public storage bucket is required. Each profile is keyed to its authenticated identity; version checks prevent stale edits. Apply the migration with `npm run db:migrate`.
+
+New quotations copy the sales name, phone, and signature from the account. **Use my current account details** in the quotation editor explicitly refreshes that snapshot on the next save. Existing documents retain their saved identity when the profile or signature changes. Invoices copy the quotation's sales snapshot; split invoices preserve the same original snapshot. Customer documents include the sales contact/signature; quotations also include blank client name, contact, and signature spaces. Usernames, login emails, and passwords are never added to the sales signature block.
 
 ## Sales workflow
 
@@ -147,6 +165,12 @@ Catalog data is currently loaded by authenticated Server Components and searched
 The application is branded **sales-erp**; company identities saved in profiles and documents remain business data. Dropdowns, numeric steppers, date calendars, checkboxes, password visibility, tooltips, and in-app confirmations use themed controls with keyboard support. Price inputs group rupiah automatically (`100000` → `100.000`); a decimal comma (`100.000,50`) preserves exact decimals in server calculations. Scrollbars, the operating system's print/PDF dialog, password-manager UI, and browser tab-close warnings remain browser-managed.
 
 Press **Ctrl/Cmd + K** for quick actions. Page entry, popovers, cards, buttons, and save notifications use brief animations; reduced-motion preferences disable them.
+
+### Phones and tablets
+
+The compact navigation is used through 1100px and closes after navigation. Directory and document lists become labeled cards through 760px. Narrow phone forms use one column; tablets use wider grids. Search dialogs fill small screens, controls provide larger touch targets, and text inputs use 16px type to avoid mobile focus zoom. Quotation and invoice editors show a fixed total/review/save bar on phones and tablets. Screen layouts are separate from A4 print styling.
+
+Responsive tests cover 320, 390, 768, 820, 844 (landscape), 1024, and 1180px widths, including navigation, long price inputs, packages, dialogs, and save actions. Browser emulation does not replace a check on a physical device with its on-screen keyboard.
 
 ## Tests
 

@@ -19,6 +19,7 @@ import { supabaseServer } from "../supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { supabaseConfig } from "../supabase/config";
 import { loginFailure } from "./login-errors";
+import { normalizeDocumentImage } from "./document-images";
 import * as repo from "./repository";
 import {
   type MasterKind,
@@ -162,12 +163,24 @@ export async function masterAction(
     return { ok: false as const, error: message(e) };
   }
 }
-export async function profileAction(input: Profile) {
+export async function profileAction(input: Profile, upload?: FormData) {
   await requireUser();
   try {
-    await repo.saveProfile(database(), input);
+    const db = database();
+    const current = await repo.profile(db);
+    let logo = current.logo ?? null;
+    if (upload?.get("removeLogo") === "yes") logo = null;
+    const file = upload?.get("logo");
+    if (file instanceof File)
+      logo = await normalizeDocumentImage(
+        Buffer.from(await file.arrayBuffer()),
+        file.type,
+      );
+    // Logo bytes only enter through the validated upload, never a client URL.
+    await repo.saveProfile(db, { ...input, logo });
     revalidatePath("/profile");
-    return { ok: true as const };
+    revalidatePath("/quotation/new");
+    return { ok: true as const, logo };
   } catch (e) {
     return { ok: false as const, error: message(e) };
   }

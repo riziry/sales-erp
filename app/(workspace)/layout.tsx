@@ -1,3 +1,5 @@
+import { database } from "@/lib/db";
+import { accountProfile, accountKey } from "@/lib/server/accounts";
 import Brand from "@/components/brand";
 import QuickActions from "@/components/quick-actions";
 import PageTransition from "@/components/page-transition";
@@ -14,7 +16,8 @@ export default async function Workspace({
 }: {
   children: React.ReactNode;
 }) {
-  await requireUser();
+  const user = await requireUser();
+  const account = await accountProfile(database(), accountKey(user));
   return (
     <div className="workspace">
       <a href="#main-content" className="skip-link">
@@ -30,10 +33,16 @@ export default async function Workspace({
         </div>
         <Navigation mobile />
         <div className="sidebar-bottom">
-          <div className="account-avatar">SE</div>
+          <div className="account-avatar">
+            {account?.name.slice(0, 2).toUpperCase() || "SE"}
+          </div>
           <div>
-            <strong>Internal account</strong>
-            <small>sales-erp</small>
+            <Link href="/account">
+              <strong>{account?.name || "Set up my account"}</strong>
+            </Link>
+            <small>
+              {account?.username ? `@${account.username}` : "sales-erp"}
+            </small>
           </div>
           <form action={logoutAction}>
             <Hint text="Sign out">

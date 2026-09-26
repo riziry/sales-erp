@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { rupiah, type CustomerDocument } from "@/lib/domain/calculate";
 import {
   invoiceAmounts,
@@ -32,7 +33,18 @@ export default function CustomerPaper({
         </p>
       )}
       <header className="document-header">
-        <div>
+        <div className="document-company">
+          {doc.company.logo && (
+            <Image
+              src={doc.company.logo}
+              alt={`${doc.company.name} logo`}
+              width={144}
+              height={56}
+              className="document-company-logo"
+              unoptimized
+              loading="eager"
+            />
+          )}
           <div className="document-brand">{doc.company.name}</div>
           <p className="preserve">{doc.company.address}</p>
           <p>
@@ -166,80 +178,93 @@ export default function CustomerPaper({
           ))}
         </tbody>
       </table>
-      <div className="document-totals">
-        <div className="summary-row">
-          <span>Subtotal before discounts</span>
-          <span>{rupiah(doc.gross)}</span>
-        </div>
-        <div className="summary-row">
-          <span>Item discount</span>
-          <span>− {rupiah(doc.lineDiscount)}</span>
-        </div>
-        <div className="summary-row">
-          <span>Overall discount</span>
-          <span>− {rupiah(doc.overallDiscount)}</span>
-        </div>
-        <div className="summary-row">
-          <span>Net subtotal</span>
-          <span>{rupiah(doc.net)}</span>
-        </div>
-        {doc.ppnEnabled && (
+      <div
+        className={
+          invoice && invoice.kind !== "FULL"
+            ? "document-financials split-financials"
+            : "document-financials"
+        }
+      >
+        <div className="document-totals">
           <div className="summary-row">
-            <span>VAT (PPN) {doc.ppnRate}%</span>
-            <span>+ {rupiah(doc.ppn)}</span>
+            <span>Subtotal before discounts</span>
+            <span>{rupiah(doc.gross)}</span>
           </div>
-        )}
-        {doc.pphEnabled && (
           <div className="summary-row">
-            <span>Income tax (PPh) {doc.pphRate}%</span>
-            <span>+ {rupiah(doc.pph)}</span>
+            <span>Item discount</span>
+            <span>− {rupiah(doc.lineDiscount)}</span>
           </div>
-        )}
-        <div className="summary-row document-total">
-          <strong>
-            {invoice
-              ? invoice.kind === "FULL"
-                ? "Invoice total"
-                : "Full project total"
-              : "Quotation total"}
-          </strong>
-          <strong>{rupiah(doc.total)}</strong>
-        </div>
-      </div>
-      {invoice && invoice.kind !== "FULL" && amounts && (
-        <div className="document-totals installment-totals">
-          <h3>{invoiceKinds[invoice.kind]}</h3>
           <div className="summary-row">
-            <span>Invoice net amount</span>
-            <span>{rupiah(amounts.net)}</span>
+            <span>Overall discount</span>
+            <span>− {rupiah(doc.overallDiscount)}</span>
+          </div>
+          <div className="summary-row">
+            <span>Net subtotal</span>
+            <span>{rupiah(doc.net)}</span>
           </div>
           {doc.ppnEnabled && (
             <div className="summary-row">
-              <span>Invoice VAT (PPN)</span>
-              <span>{rupiah(amounts.ppn)}</span>
+              <span>VAT (PPN) {doc.ppnRate}%</span>
+              <span>+ {rupiah(doc.ppn)}</span>
             </div>
           )}
           {doc.pphEnabled && (
             <div className="summary-row">
-              <span>Invoice income tax (PPh)</span>
-              <span>{rupiah(amounts.pph)}</span>
+              <span>Income tax (PPh) {doc.pphRate}%</span>
+              <span>+ {rupiah(doc.pph)}</span>
             </div>
           )}
           <div className="summary-row document-total">
-            <strong>Amount due on this invoice</strong>
-            <strong>{rupiah(amounts.total)}</strong>
+            <strong>
+              {invoice
+                ? invoice.kind === "FULL"
+                  ? "Invoice total"
+                  : "Full project total"
+                : "Quotation total"}
+            </strong>
+            <strong>{rupiah(doc.total)}</strong>
           </div>
-          <p className="small-text">
-            Installment amounts do not confirm receipt of payment.
-          </p>
         </div>
-      )}
+        {invoice && invoice.kind !== "FULL" && amounts && (
+          <div className="document-totals installment-totals">
+            <h3>{invoiceKinds[invoice.kind]}</h3>
+            <div className="summary-row">
+              <span>Invoice net amount</span>
+              <span>{rupiah(amounts.net)}</span>
+            </div>
+            {doc.ppnEnabled && (
+              <div className="summary-row">
+                <span>Invoice VAT (PPN)</span>
+                <span>{rupiah(amounts.ppn)}</span>
+              </div>
+            )}
+            {doc.pphEnabled && (
+              <div className="summary-row">
+                <span>Invoice income tax (PPh)</span>
+                <span>{rupiah(amounts.pph)}</span>
+              </div>
+            )}
+            <div className="summary-row document-total">
+              <strong>Amount due on this invoice</strong>
+              <strong>{rupiah(amounts.total)}</strong>
+            </div>
+            <p className="small-text">
+              Installment amounts do not confirm receipt of payment.
+            </p>
+          </div>
+        )}
+      </div>
       <section className="document-bottom">
         <div>
           <h3>Payment bank account</h3>
           <p>{doc.bank.bank || "—"}</p>
           <strong>{doc.bank.number}</strong>
           <p>{doc.bank.holder && `Account holder: ${doc.bank.holder}`}</p>
+          {invoice && (
+            <div className="invoice-signature-inline">
+              <SalesSignature sales={doc.sales} />
+            </div>
+          )}
         </div>
         <div>
           {doc.terms && (
@@ -256,9 +281,59 @@ export default function CustomerPaper({
           )}
         </div>
       </section>
+      {!invoice && (
+        <section
+          className="document-signatures"
+          aria-label="Document signatures"
+        >
+          <SalesSignature sales={doc.sales} />
+          <div className="client-signature">
+            <h3>Client approval</h3>
+            <div className="signature-space">
+              <span>Signature</span>
+            </div>
+            <p className="client-write-line">
+              Name: <span />
+            </p>
+            <p className="client-write-line">
+              Contact: <span />
+            </p>
+          </div>
+        </section>
+      )}
       <footer className="document-footer">
         Thank you for your trust.<strong>{doc.company.name}</strong>
       </footer>
     </article>
+  );
+}
+
+function SalesSignature({
+  sales,
+}: {
+  sales: CustomerDocument["sales"] | undefined;
+}) {
+  return (
+    <div className="sales-signature">
+      <h3>Prepared by</h3>
+      <div className="signature-space">
+        {sales?.signature && (
+          <Image
+            src={sales.signature}
+            alt={`Signature of ${sales.name}`}
+            width={180}
+            height={64}
+            loading="eager"
+            unoptimized
+          />
+        )}
+      </div>
+      <strong>{sales?.name || "Sales representative"}</strong>
+      <p>
+        {sales?.phone
+          ? `Contact: ${sales.phone}`
+          : "Contact: ____________________"}
+      </p>
+    </div>
   );
 }

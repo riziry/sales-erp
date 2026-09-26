@@ -6,7 +6,7 @@ import { Area, BasisField, Check, Field, Notice } from "./fields";
 import { SearchSelect as Select } from "./search-picker";
 import Modal from "./modal";
 import Pagination from "./pagination";
-import { Search } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { masterAction } from "@/lib/server/actions";
 import {
   emptyContact,
@@ -118,7 +118,7 @@ export default function MasterManager({
           <p className="muted">{subtitles[kind]}</p>
         </div>
         <button className="button primary" onClick={() => edit()}>
-          ＋ Add{" "}
+          <Plus size={16} aria-hidden="true" /> Add{" "}
           {kind === "prices"
             ? "price"
             : kind === "items"
@@ -272,7 +272,7 @@ export default function MasterManager({
                 : "Add your first record to reuse it in quotations."}
             </p>
             <button className="button" onClick={() => edit()}>
-              ＋ Add record
+              <Plus size={16} aria-hidden="true" /> Add record
             </button>
           </div>
         )}
@@ -530,7 +530,7 @@ export default function MasterManager({
                     ])
                   }
                 >
-                  ＋ Component
+                  <Plus size={16} aria-hidden="true" /> Component
                 </button>
               </div>
             )}

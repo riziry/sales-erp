@@ -82,7 +82,20 @@ export function customerDocument(q: Quotation) {
   const c = calculate(q);
   // Explicit allowlist: never pass the internal snapshot into the customer view.
   return {
-    company: q.company,
+    sales: q.sales
+      ? {
+          name: q.sales.name,
+          phone: q.sales.phone,
+          signature: q.sales.signature,
+        }
+      : null,
+    company: {
+      name: q.company.name,
+      address: q.company.address,
+      contact: q.company.contact,
+      email: q.company.email,
+      logo: q.company.logo ?? null,
+    },
     customer: {
       name: q.customer.name,
       address: q.customer.address,

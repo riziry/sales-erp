@@ -12,9 +12,16 @@ import {
   Package,
   ChartNoAxesCombined,
   Settings,
+  UserRound,
 } from "lucide-react";
 import Modal from "./modal";
 const actions = [
+  {
+    label: "My account",
+    detail: "Contact details, password, and signature",
+    href: "/account",
+    Icon: UserRound,
+  },
   {
     label: "New quotation",
     detail: "Create a customer offer",

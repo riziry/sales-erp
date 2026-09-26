@@ -1,4 +1,5 @@
 "use client";
+import type { SalesIdentity } from "@/lib/domain/account";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -13,6 +14,7 @@ import {
 import { Picker, SearchSelect as Select } from "./search-picker";
 import {
   Copy,
+  Plus,
   ChevronDown,
   ChevronUp,
   ArrowUp,
@@ -56,10 +58,12 @@ export default function QuotationEditor({
   initial,
   catalog,
   saved,
+  currentSales,
 }: {
   initial: Quotation;
   catalog: Catalog;
   saved?: Saved;
+  currentSales?: SalesIdentity | null;
 }) {
   const router = useRouter();
   const [data, setData] = useState(initial);
@@ -447,7 +451,7 @@ export default function QuotationEditor({
                 disabled={data.lines.length >= 200}
                 onClick={() => update("lines", [...data.lines, newLine()])}
               >
-                ＋ Custom item
+                <Plus size={16} aria-hidden="true" /> Custom item
               </button>
             </div>
             <p className="section-description">
@@ -776,7 +780,7 @@ export default function QuotationEditor({
                             })
                           }
                         >
-                          ＋ Custom component
+                          <Plus size={16} aria-hidden="true" /> Custom component
                         </button>
                       </div>
                     </div>
@@ -876,6 +880,40 @@ export default function QuotationEditor({
                 A manually edited bank account will not change when tax options
                 change.
               </p>
+            </div>
+          </section>
+          <section className="panel padded sales-contact-panel">
+            <h2>Sales contact & signature</h2>
+            <p className="section-description">
+              Saved with this quotation and copied to its invoices.
+            </p>
+            {data.sales ? (
+              <p>
+                <strong>{data.sales.name}</strong>
+                <br />
+                {data.sales.phone}
+                {data.sales.signature
+                  ? " · Signature included"
+                  : " · No signature uploaded"}
+              </p>
+            ) : (
+              <p className="muted">
+                No sales contact saved on this document yet.
+              </p>
+            )}
+            <div className="form-actions">
+              {currentSales && (
+                <button
+                  type="button"
+                  className="button"
+                  onClick={() => update("sales", structuredClone(currentSales))}
+                >
+                  Use my current account details
+                </button>
+              )}
+              <Link href="/account" className="button">
+                Manage my account
+              </Link>
             </div>
           </section>
           <section className="panel padded" id="quote-terms">

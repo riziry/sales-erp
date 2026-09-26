@@ -2,21 +2,28 @@ import { notFound } from "next/navigation";
 import { database } from "@/lib/db";
 import { catalog, getQuotation } from "@/lib/server/repository";
 import { requireUser } from "@/lib/server/auth";
+import { accountProfile, accountKey } from "@/lib/server/accounts";
+import { salesIdentity } from "@/lib/domain/account";
 import QuotationEditor from "@/components/quotation-editor";
 export default async function QuotationPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireUser();
+  const user = await requireUser();
   const { id } = await params;
   const db = database();
-  const [q, c] = await Promise.all([getQuotation(db, id), catalog(db)]);
+  const [q, c, account] = await Promise.all([
+    getQuotation(db, id),
+    catalog(db),
+    accountProfile(db, accountKey(user)),
+  ]);
   if (!q) notFound();
   return (
     <QuotationEditor
       key={`${q.id}-${q.version}`}
       initial={q.data}
+      currentSales={salesIdentity(account)}
       catalog={c}
       saved={{
         id: q.id,

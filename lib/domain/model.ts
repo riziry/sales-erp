@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { salesIdentitySchema } from "./account";
+import { documentImageSchema } from "./image";
 
 const text = z.string().trim().max(10000);
 const name = z.string().trim().min(1, "Required").max(250);
@@ -19,6 +21,7 @@ export const bankSchema = z.object({ bank: text, number: text, holder: text });
 export const emptyBank = { bank: "", number: "", holder: "" };
 export const profileSchema = z.object({
   name,
+  logo: documentImageSchema.nullable().optional(),
   address: text,
   contact: text,
   email: text,
@@ -30,6 +33,7 @@ export const profileSchema = z.object({
 export type Profile = z.infer<typeof profileSchema>;
 export const defaultProfile: Profile = {
   name: "YW Production",
+  logo: null,
   address: "",
   contact: "",
   email: "",
@@ -154,10 +158,12 @@ export type Line = z.infer<typeof lineSchema>;
 const date = z.iso.date();
 export const quotationSchema = z
   .object({
+    sales: salesIdentitySchema.nullable().optional(),
     customerId: z.uuid().nullable(),
     customer: contactSchema,
     company: profileSchema.pick({
       name: true,
+      logo: true,
       address: true,
       contact: true,
       email: true,
@@ -220,6 +226,7 @@ export function newQuotation(profile: Profile): Quotation {
     customer: { ...emptyContact },
     company: {
       name: profile.name,
+      logo: profile.logo ?? null,
       address: profile.address,
       contact: profile.contact,
       email: profile.email,

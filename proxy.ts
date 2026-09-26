@@ -41,6 +41,7 @@ export const config = {
     "/invoice/:path*",
     "/master/:path*",
     "/profile",
+    "/account",
     "/help",
   ],
 };

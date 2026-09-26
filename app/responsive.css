@@ -847,7 +847,7 @@
       max(16px, env(safe-area-inset-bottom));
   }
   dialog.confirm-modal,
-  dialog.tour-modal {
+  dialog.tutorial-modal {
     height: auto;
     max-width: calc(100vw - 24px);
     max-height: calc(100dvh - 24px);
@@ -994,5 +994,38 @@
   .page-transition {
     animation: none !important;
     transition: none !important;
+  }
+}
+@media screen and (max-width: 900px) {
+  .account-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media screen and (max-width: 540px) {
+  .document-signatures {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+  .signature-actions .button {
+    flex: 1 1 auto;
+  }
+}
+@media screen and (max-width: 360px) {
+  .topbar {
+    padding-inline: 12px;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .topbar-actions {
+    gap: 6px;
+  }
+  .theme-switcher button {
+    min-width: 32px;
+  }
+}
+@media screen and (max-width: 760px) {
+  .split-financials {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
   }
 }

@@ -168,3 +168,12 @@ export const followups = pgTable(
   },
   (table) => [index("followup_due_idx").on(table.done, table.dueDate)],
 ).enableRLS();
+
+export const accountProfiles = pgTable("account_profiles", {
+  id: text("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  name: text("name").notNull(),
+  phone: text("phone").notNull(),
+  signature: text("signature"),
+  version: integer("version").notNull().default(1),
+}).enableRLS();

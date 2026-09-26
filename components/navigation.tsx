@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Menu,
+  UserRound,
   ChartNoAxesCombined,
   ChevronDown,
   FileText,
@@ -37,6 +38,7 @@ const groups = [
   {
     label: "PREFERENCES",
     links: [
+      { href: "/account", label: "My account", Icon: UserRound },
       { href: "/profile", label: "Company & accounts", Icon: Settings },
       { href: "/help", label: "Getting started", Icon: BookOpen },
     ],

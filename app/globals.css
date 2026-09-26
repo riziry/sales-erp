@@ -1011,6 +1011,57 @@ td strong {
   letter-spacing: -0.7px;
   margin-bottom: 8px;
 }
+.document-company-logo {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 144px;
+  max-height: 56px;
+  object-fit: contain;
+  object-position: left center;
+  margin-bottom: 10px;
+}
+.company-logo-editor {
+  display: grid;
+  grid-template-columns: 192px minmax(0, 1fr);
+  gap: 24px;
+  align-items: center;
+  margin-top: 18px;
+}
+.company-logo-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 144px;
+  padding: 16px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  color: var(--muted);
+  background: var(--surface-alt);
+  font-size: 13px;
+}
+.company-logo-preview.has-logo {
+  background: #fff;
+}
+.company-logo-preview img {
+  width: 100%;
+  height: 100px;
+  object-fit: contain;
+}
+.company-logo-editor p + p {
+  margin-top: 10px;
+}
+@media screen and (max-width: 600px) {
+  .company-logo-editor {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  .company-logo-preview img {
+    max-width: 240px;
+  }
+}
 .document-header p {
   font-size: 10px;
   color: #7c8390;
@@ -3704,4 +3755,204 @@ dialog::backdrop {
     justify-content: center;
     flex-shrink: 0;
   }
+}
+/* Account identity and self-contained document signatures. */
+.account-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+.account-save {
+  grid-column: 1 / -1;
+}
+.signature-preview {
+  min-height: 180px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--surface-alt);
+  color: var(--muted);
+}
+.signature-preview.has-signature {
+  background: #fff;
+  padding: 18px;
+}
+.signature-preview img {
+  width: 100%;
+  max-width: 320px;
+  height: 128px;
+  object-fit: contain;
+}
+.signature-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 16px 0;
+}
+.signature-panel > p {
+  margin-top: 12px;
+}
+.signature-drawer {
+  max-width: 760px;
+}
+.signature-canvas-wrap {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  margin-top: 18px;
+}
+.signature-canvas-wrap canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 5 / 2;
+  touch-action: none;
+  user-select: none;
+  cursor: crosshair;
+}
+.signature-canvas-wrap > span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #64748b;
+  pointer-events: none;
+}
+.signature-drawer .signature-actions {
+  align-items: center;
+}
+.email-pending {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 20px;
+  overflow-wrap: anywhere;
+}
+.email-pending p {
+  margin-block: 10px;
+}
+.sidebar-bottom > div:nth-child(2) {
+  min-width: 0;
+}
+.sidebar-bottom strong,
+.sidebar-bottom small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sales-contact-panel > p {
+  margin-block: 14px;
+}
+.document-signatures {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #dce3de;
+  break-inside: avoid;
+  color: #202c28;
+}
+.document-signatures h3 {
+  font-size: 10px;
+  margin: 0 0 8px;
+}
+.document-signatures p {
+  font-size: 10px;
+  margin: 5px 0 0;
+}
+.document-signatures strong {
+  font-size: 11px;
+}
+.signature-space {
+  height: 72px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.signature-space img {
+  object-fit: contain;
+  object-position: left center;
+  max-width: 100%;
+  height: 64px;
+  width: 180px;
+}
+.client-signature .signature-space {
+  border-bottom: 1px solid #a5ada8;
+  align-items: end;
+}
+.client-signature .signature-space > span {
+  color: #626e68;
+  font-size: 9px;
+  padding-bottom: 5px;
+}
+.client-write-line {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.client-write-line span {
+  flex: 1;
+  border-bottom: 1px dotted #a5ada8;
+}
+@media print {
+  .invoice-signatures {
+    margin-top: 14px;
+    padding-top: 10px;
+  }
+  .invoice-signatures .signature-space {
+    height: 52px;
+    margin-bottom: 4px;
+  }
+  .invoice-signatures .signature-space img {
+    height: 50px;
+  }
+}
+.invoice-signature-inline {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #dce3de;
+  color: #202c28;
+}
+.invoice-signature-inline .signature-space {
+  height: 52px;
+  margin-bottom: 4px;
+}
+.invoice-signature-inline .signature-space img {
+  height: 50px;
+}
+.invoice-signature-inline .sales-signature > strong {
+  font-size: 11px;
+}
+.sales-signature {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.account-avatar {
+  flex-shrink: 0;
+}
+.split-financials {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+  break-inside: avoid;
+}
+.split-financials .document-totals {
+  width: 100%;
+}
+.split-financials .summary-row {
+  gap: 10px;
+}
+.split-financials .summary-row > :last-child {
+  text-align: right;
 }
