@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { database } from "@/lib/db";
-import { catalog, getQuotation } from "@/lib/server/repository";
+import { catalog, getQuotation, profile } from "@/lib/server/repository";
 import { requireUser } from "@/lib/server/auth";
 import { accountProfile, accountKey } from "@/lib/server/accounts";
 import { salesIdentity } from "@/lib/domain/account";
@@ -13,10 +13,11 @@ export default async function QuotationPage({
   const user = await requireUser();
   const { id } = await params;
   const db = database();
-  const [q, c, account] = await Promise.all([
+  const [q, c, account, company] = await Promise.all([
     getQuotation(db, id),
     catalog(db),
     accountProfile(db, accountKey(user)),
+    profile(db),
   ]);
   if (!q) notFound();
   return (
@@ -24,6 +25,7 @@ export default async function QuotationPage({
       key={`${q.id}-${q.version}`}
       initial={q.data}
       currentSales={salesIdentity(account)}
+      currentCompanyLogo={company.logo ?? null}
       catalog={c}
       saved={{
         id: q.id,

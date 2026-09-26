@@ -77,10 +77,12 @@ export function Area({
   label,
   value,
   onChange,
+  rows = 3,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  rows?: number;
 }) {
   return (
     <label className="field">
@@ -89,7 +91,7 @@ export function Area({
         aria-label={label}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        rows={3}
+        rows={rows}
       />
     </label>
   );

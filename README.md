@@ -76,11 +76,21 @@ Deploy behind HTTPS; production session cookies use `Secure`. Back up PostgreSQL
 
 Existing customer-entered text and stored document snapshots retain their original content. Changing the interface language does not rewrite historical documents.
 
+### Event schedules and quotation editing
+
+Quotation details are grouped into customer, event/location, and document dates. **Choose dates** selects an inclusive event date range; you can also type the start and end dates. Leave the end date blank for a single-day event, or clear both dates when they are not confirmed. Reversed ranges are rejected. Saved quotations, revisions, and invoice copies include both dates, while old single-day documents remain compatible. Duplicating a quotation clears both event dates.
+
+Changing event dates does not change prices automatically. **Apply N days to daily items** updates daily selling/cost durations and daily package components after an in-app confirmation; one-time charges remain independent. Review the recalculated totals and save. The readiness indicator links to incomplete sections, and printing is disabled while edits are unsaved.
+
+New quotations use the English payment, equipment-damage, acceptance, and validity wording. **Restore defaults** lets you explicitly replace notes and terms in an existing editor; custom and historical wording otherwise stays intact. The new range is stored in existing document JSON, so no database migration is needed.
+
 ### Company logo
 
 In **Company & accounts**, use **Company logo → Upload logo**, then **Save profile**. You can preview, replace, or remove the logo. PNG, JPEG, and WebP files up to 5 MB are accepted; the server decodes and normalizes them to a bounded PNG, preserving transparency and proportions. Logos are stored in the existing company-profile JSON, so no additional database migration or public storage bucket is needed.
 
 New quotations copy the saved logo into their company snapshot and display it in the print/PDF header. Invoices inherit that logo from their quotation. Replacing or removing the company logo does not change existing quotations, revisions, or invoices. Documents created before this feature continue to print without a logo.
+
+To add the logo to an existing quotation, open **Company logo & stamp → Use company logo**, then save. For a sent, approved, or rejected quotation, save a new revision; previous versions keep their original branding. The editor previews the chosen logo and sales signature. A saved logo appears behind an uploaded sales signature as a translucent stamp tilted 12 degrees, in both quotations and invoices. Signature images with white backgrounds blend over the stamp so the signature stays legible. No stamp is shown when the sales signature is missing, and the client's signature area remains blank.
 
 ### Pricing, costs, and packages
 

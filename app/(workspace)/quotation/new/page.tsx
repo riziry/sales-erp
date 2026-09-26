@@ -19,6 +19,7 @@ export default async function NewQuotation() {
       initial={{ ...newQuotation(p), sales }}
       catalog={c}
       currentSales={sales}
+      currentCompanyLogo={p.logo ?? null}
     />
   );
 }

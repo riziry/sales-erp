@@ -64,6 +64,7 @@ export async function duplicateQuotation(
   expiry.setUTCDate(expiry.getUTCDate() + 14);
   data.validUntil = jakartaDate(expiry);
   data.eventDate = "";
+  data.eventEndDate = "";
   data.lines = data.lines.map((line) => ({
     ...line,
     id: crypto.randomUUID(),

@@ -105,6 +105,7 @@ export function customerDocument(q: Quotation) {
     event: q.event,
     location: q.location,
     eventDate: q.eventDate,
+    eventEndDate: q.eventEndDate || "",
     date: q.date,
     validUntil: q.validUntil,
     notes: q.notes,

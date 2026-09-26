@@ -1,4 +1,6 @@
 import Image from "next/image";
+import SalesSignature from "./sales-signature";
+import { eventDateLabel } from "@/lib/domain/event-dates";
 import { rupiah, type CustomerDocument } from "@/lib/domain/calculate";
 import {
   invoiceAmounts,
@@ -97,8 +99,12 @@ export default function CustomerPaper({
           </div>
           {doc.eventDate && (
             <div>
-              <dt>Event date</dt>
-              <dd>{doc.eventDate}</dd>
+              <dt>
+                {doc.eventEndDate && doc.eventEndDate !== doc.eventDate
+                  ? "Event dates"
+                  : "Event date"}
+              </dt>
+              <dd>{eventDateLabel(doc.eventDate, doc.eventEndDate)}</dd>
             </div>
           )}
           {doc.location && (
@@ -262,7 +268,10 @@ export default function CustomerPaper({
           <p>{doc.bank.holder && `Account holder: ${doc.bank.holder}`}</p>
           {invoice && (
             <div className="invoice-signature-inline">
-              <SalesSignature sales={doc.sales} />
+              <SalesSignature
+                sales={doc.sales}
+                companyLogo={doc.company.logo}
+              />
             </div>
           )}
         </div>
@@ -286,7 +295,7 @@ export default function CustomerPaper({
           className="document-signatures"
           aria-label="Document signatures"
         >
-          <SalesSignature sales={doc.sales} />
+          <SalesSignature sales={doc.sales} companyLogo={doc.company.logo} />
           <div className="client-signature">
             <h3>Client approval</h3>
             <div className="signature-space">
@@ -305,35 +314,5 @@ export default function CustomerPaper({
         Thank you for your trust.<strong>{doc.company.name}</strong>
       </footer>
     </article>
-  );
-}
-
-function SalesSignature({
-  sales,
-}: {
-  sales: CustomerDocument["sales"] | undefined;
-}) {
-  return (
-    <div className="sales-signature">
-      <h3>Prepared by</h3>
-      <div className="signature-space">
-        {sales?.signature && (
-          <Image
-            src={sales.signature}
-            alt={`Signature of ${sales.name}`}
-            width={180}
-            height={64}
-            loading="eager"
-            unoptimized
-          />
-        )}
-      </div>
-      <strong>{sales?.name || "Sales representative"}</strong>
-      <p>
-        {sales?.phone
-          ? `Contact: ${sales.phone}`
-          : "Contact: ____________________"}
-      </p>
-    </div>
   );
 }

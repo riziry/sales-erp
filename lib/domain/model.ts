@@ -171,6 +171,7 @@ export const quotationSchema = z
     event: name,
     location: text,
     eventDate: date.or(z.literal("")),
+    eventEndDate: date.or(z.literal("")).optional(),
     date,
     validUntil: date,
     notes: text,
@@ -186,6 +187,14 @@ export const quotationSchema = z
     bankDefaults: z.object({ tax: bankSchema, regular: bankSchema }),
   })
   .superRefine((v, ctx) => {
+    if (v.eventEndDate && (!v.eventDate || v.eventEndDate < v.eventDate))
+      ctx.addIssue({
+        code: "custom",
+        path: ["eventEndDate"],
+        message: v.eventDate
+          ? "The event end date cannot be before the start date."
+          : "Choose an event start date before setting the end date.",
+      });
     if (v.validUntil < v.date)
       ctx.addIssue({
         code: "custom",
@@ -217,6 +226,10 @@ export const emptyContact: Contact = {
   notes: "",
   active: true,
 };
+export const DEFAULT_QUOTATION_TERMS =
+  "Payment Terms: A 50% Down Payment (DP) is required to confirm the booking. The remaining 50% balance shall be settled upon completion of the event, after equipment dismantling/load-out.\n\nEquipment Damage: Any damage to the equipment caused by the customer’s negligence, misuse, or improper handling shall be the full responsibility of the Customer.";
+export const DEFAULT_QUOTATION_NOTES =
+  "Upon acceptance of this quotation, please sign and return a copy to us, either in hard copy or electronic format.\nThis quotation is valid until the date shown.";
 export function newQuotation(profile: Profile): Quotation {
   const today = jakartaDate();
   const expiry = new Date(today + "T00:00:00Z");
@@ -234,12 +247,11 @@ export function newQuotation(profile: Profile): Quotation {
     event: "",
     location: "",
     eventDate: "",
+    eventEndDate: "",
     date: today,
     validUntil: expiry.toISOString().slice(0, 10),
-    notes:
-      "Apabila telah disepakati mohon ditandatangani dan di kirimkan kembali berupa hard copy/soft copy ke kami",
-    terms:
-      "Syarat pembayaran adalah DP 50 % dan sisanya 50 % saat acara selesai ( deinstalsi acara )\n\nKerusakan barang yang terjadi karena kesalahan customer menjadi tanggung jawab pemesan / Customer",
+    notes: DEFAULT_QUOTATION_NOTES,
+    terms: DEFAULT_QUOTATION_TERMS,
     lines: [],
     discount: { type: "PERCENT", value: "0" },
     ppnEnabled: false,

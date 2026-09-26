@@ -28,6 +28,14 @@ export default async function PrintPage({
         </span>
         <PrintButton />
       </div>
+      {!doc.company.logo && q.revision === q.latestRevision && (
+        <div className="print-branding-notice">
+          <span>This quotation has no company logo.</span>
+          <Link href={`/quotation/${q.id}#quote-branding`}>
+            Add company logo
+          </Link>
+        </div>
+      )}
       <CustomerPaper
         document={doc}
         number={q.number}

@@ -63,16 +63,16 @@ test("custom controls format prices, support keyboard and nested dialogs, and sa
   await page.keyboard.press("Enter");
   await expect(basis).toContainText("Once / event");
   await page
-    .getByRole("button", { name: "Choose event date", exact: true })
+    .getByRole("button", { name: "Choose event dates", exact: true })
     .click();
   await expect(page.locator(".calendar-popover")).toBeVisible();
   await page
     .locator(".calendar-popover")
     .getByRole("button", { name: "Today", exact: true })
     .click();
-  await expect(page.getByLabel("Event date", { exact: true })).not.toHaveValue(
-    "",
-  );
+  await expect(
+    page.getByLabel("Event start date", { exact: true }),
+  ).not.toHaveValue("");
   await expect(
     page.locator(
       'select:visible, input[type="number"]:visible, input[type="date"]:visible',
@@ -89,7 +89,9 @@ test("custom controls format prices, support keyboard and nested dialogs, and sa
   await expect(page.getByLabel("Event / project", { exact: true })).toHaveValue(
     "Copy of Sales testing offer",
   );
-  await expect(page.getByLabel("Event date", { exact: true })).toHaveValue("");
+  await expect(
+    page.getByLabel("Event start date", { exact: true }),
+  ).toHaveValue("");
   await expect(price).toHaveValue("100.000");
   await page.goto(original);
   await expect(page.getByLabel("Event / project", { exact: true })).toHaveValue(

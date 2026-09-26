@@ -16,8 +16,8 @@ import Modal from "./modal";
 export const guideSteps = [
   {
     title: "Start with the customer and event",
-    text: "Create a quotation, search for a saved customer, or enter a custom customer. Add the event name, dates, and location. Fields marked * are required.",
-    tip: "Your changes stay in this quotation. Customer and catalog records are never overwritten.",
+    text: "Create a quotation, choose a customer, then add the event name and location. Use Choose dates to select the first and last day of the event. Leave the end date blank for a single-day event.",
+    tip: "Event dates do not change prices automatically. Use Apply days to daily items to update billing durations, then review the totals before saving.",
     Icon: FileText,
     href: "/quotation/new",
     link: "Create a quotation",

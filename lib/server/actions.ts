@@ -179,7 +179,7 @@ export async function profileAction(input: Profile, upload?: FormData) {
     // Logo bytes only enter through the validated upload, never a client URL.
     await repo.saveProfile(db, { ...input, logo });
     revalidatePath("/profile");
-    revalidatePath("/quotation/new");
+    revalidatePath("/quotation", "layout");
     return { ok: true as const, logo };
   } catch (e) {
     return { ok: false as const, error: message(e) };

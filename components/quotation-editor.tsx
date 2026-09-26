@@ -1,6 +1,8 @@
 "use client";
 import type { SalesIdentity } from "@/lib/domain/account";
 import Link from "next/link";
+import Image from "next/image";
+import SalesSignature from "./sales-signature";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import {
@@ -24,7 +26,14 @@ import {
   CheckCircle2,
   Circle,
   LockKeyhole,
+  CalendarRange,
 } from "lucide-react";
+import EventDateRange from "./ui/event-date-range";
+import {
+  applyEventDuration,
+  eventDays,
+  eventDateLabel,
+} from "@/lib/domain/event-dates";
 import { useUnsavedChanges } from "./use-unsaved-changes";
 import { useUI } from "./ui-provider";
 import { duplicateQuotationAction } from "@/lib/server/sales-actions";
@@ -39,6 +48,8 @@ import {
   resetBank,
   selectTax,
   statusNames,
+  DEFAULT_QUOTATION_NOTES,
+  DEFAULT_QUOTATION_TERMS,
   type Catalog,
   type Component,
   type Line,
@@ -59,11 +70,13 @@ export default function QuotationEditor({
   catalog,
   saved,
   currentSales,
+  currentCompanyLogo = null,
 }: {
   initial: Quotation;
   catalog: Catalog;
   saved?: Saved;
   currentSales?: SalesIdentity | null;
+  currentCompanyLogo?: string | null;
 }) {
   const router = useRouter();
   const [data, setData] = useState(initial);
@@ -76,7 +89,16 @@ export default function QuotationEditor({
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const historical = !!saved && saved.revision !== saved.latestRevision;
-  const { notify } = useUI();
+  const { notify, confirm } = useUI();
+  const duration = eventDays(data.eventDate, data.eventEndDate);
+  const checks = [
+    {
+      done: !!data.customer.name.trim() && !!data.event.trim(),
+      label: "Customer & event",
+      href: "#quote-details",
+    },
+    { done: !!data.lines.length, label: "Items added", href: "#quote-items" },
+  ];
   useUnsavedChanges(dirty, "quotation");
   function change(next: Quotation) {
     setData(next);
@@ -106,6 +128,12 @@ export default function QuotationEditor({
         ? e.message
         : "Complete the numeric fields in this quotation.";
   }
+  checks.push({
+    done: !!totals?.complete && !!data.lines.length,
+    label: "All costs complete",
+    href: "#quote-items",
+  });
+  const completed = checks.filter((check) => check.done).length;
   function move(index: number, step: number) {
     const lines = [...data.lines];
     const target = index + step;
@@ -194,7 +222,11 @@ export default function QuotationEditor({
                 {statusNames[saved.status]}
               </span>
               <Link
-                className="button"
+                className={`button ${dirty || pending ? "disabled-link" : ""}`}
+                aria-disabled={dirty || pending}
+                onClick={(event) => {
+                  if (dirty || pending) event.preventDefault();
+                }}
                 target="_blank"
                 href={`/quotation/${saved.id}/print`}
               >
@@ -253,6 +285,11 @@ export default function QuotationEditor({
           )}
         </div>
       </div>
+      {saved && dirty && (
+        <p className="editor-save-hint">
+          Save your changes to print the updated quotation or create an invoice.
+        </p>
+      )}
       {saved && (
         <div className="revision-bar">
           <span>Revision history</span>
@@ -323,85 +360,187 @@ export default function QuotationEditor({
               Choose a customer or enter their details below. Fields marked *
               are required.
             </p>
-            <div className="form-grid">
-              <Select
-                label="Select customer"
-                value={data.customerId || ""}
-                onChange={(v) => {
-                  const c = catalog.customers.find((c) => c.id === v);
-                  if (c) {
-                    const { id, ...customer } = c;
-                    change({ ...data, customerId: id, customer });
-                  } else update("customerId", null);
-                }}
-              >
-                <option value="">Custom customer</option>
-                {catalog.customers
-                  .filter((c) => c.active || c.id === data.customerId)
-                  .map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-              </Select>
-              <Field
-                label="Customer / company name"
-                value={data.customer.name}
-                onChange={(v) =>
-                  update("customer", { ...data.customer, name: v })
+            <div className="quotation-branding" id="quote-branding">
+              <div className="quotation-logo-preview">
+                {data.company.logo || currentCompanyLogo ? (
+                  <Image
+                    src={(data.company.logo || currentCompanyLogo)!}
+                    alt={
+                      data.company.logo
+                        ? "Quotation company logo"
+                        : "Available company logo"
+                    }
+                    width={144}
+                    height={64}
+                    unoptimized
+                  />
+                ) : (
+                  <span className="muted small-text">No logo</span>
+                )}
+              </div>
+              <div className="quotation-branding-details">
+                <h3>Company logo & stamp</h3>
+                <p className="muted small-text">
+                  {data.company.logo
+                    ? "Included in the document header and behind the sales signature."
+                    : currentCompanyLogo
+                      ? "This quotation does not have the company logo yet. Add it, then save the quotation."
+                      : "Upload a company logo in Company & accounts to include it here."}
+                </p>
+                <div className="signature-actions">
+                  {currentCompanyLogo &&
+                    currentCompanyLogo !== data.company.logo && (
+                      <button
+                        type="button"
+                        className="button small"
+                        onClick={() => {
+                          update("company", {
+                            ...data.company,
+                            logo: currentCompanyLogo,
+                          });
+                          notify(
+                            saved && saved.status !== "DRAFT"
+                              ? "Company logo added. Save a new revision to keep it."
+                              : "Company logo added. Save the quotation to keep it.",
+                          );
+                        }}
+                      >
+                        Use company logo
+                      </button>
+                    )}
+                  <Link href="/profile" className="button small">
+                    Manage company logo
+                  </Link>
+                </div>
+              </div>
+            </div>
+            <div className="quotation-details-group">
+              <h3>Customer</h3>
+              <div className="form-grid">
+                <Select
+                  label="Select customer"
+                  value={data.customerId || ""}
+                  onChange={(v) => {
+                    const c = catalog.customers.find((c) => c.id === v);
+                    if (c) {
+                      const { id, ...customer } = c;
+                      change({ ...data, customerId: id, customer });
+                    } else update("customerId", null);
+                  }}
+                >
+                  <option value="">Custom customer</option>
+                  {catalog.customers
+                    .filter((c) => c.active || c.id === data.customerId)
+                    .map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                </Select>
+                <Field
+                  label="Customer / company name"
+                  value={data.customer.name}
+                  onChange={(v) =>
+                    update("customer", { ...data.customer, name: v })
+                  }
+                  required
+                />
+                <Field
+                  label="Customer contact"
+                  value={data.customer.contact}
+                  onChange={(v) =>
+                    update("customer", { ...data.customer, contact: v })
+                  }
+                />
+                <Field
+                  label="Customer email"
+                  value={data.customer.email}
+                  onChange={(v) =>
+                    update("customer", { ...data.customer, email: v })
+                  }
+                />
+                <Area
+                  label="Customer address"
+                  value={data.customer.address}
+                  onChange={(v) =>
+                    update("customer", { ...data.customer, address: v })
+                  }
+                />
+              </div>
+            </div>
+            <div className="quotation-details-group">
+              <h3>Event & location</h3>
+              <div className="form-grid">
+                <Field
+                  label="Event / project"
+                  value={data.event}
+                  onChange={(v) => update("event", v)}
+                  required
+                />
+                <Field
+                  label="Event location"
+                  value={data.location}
+                  onChange={(v) => update("location", v)}
+                />
+              </div>
+              <EventDateRange
+                start={data.eventDate}
+                end={data.eventEndDate || ""}
+                onChange={(eventDate, eventEndDate) =>
+                  change({ ...data, eventDate, eventEndDate })
                 }
-                required
               />
-              <Field
-                label="Customer contact"
-                value={data.customer.contact}
-                onChange={(v) =>
-                  update("customer", { ...data.customer, contact: v })
-                }
-              />
-              <Field
-                label="Customer email"
-                value={data.customer.email}
-                onChange={(v) =>
-                  update("customer", { ...data.customer, email: v })
-                }
-              />
-              <Area
-                label="Customer address"
-                value={data.customer.address}
-                onChange={(v) =>
-                  update("customer", { ...data.customer, address: v })
-                }
-              />
-              <Field
-                label="Event / project"
-                value={data.event}
-                onChange={(v) => update("event", v)}
-                required
-              />
-              <Field
-                label="Event location"
-                value={data.location}
-                onChange={(v) => update("location", v)}
-              />
-              <Field
-                label="Event date"
-                type="date"
-                value={data.eventDate}
-                onChange={(v) => update("eventDate", v)}
-              />
-              <Field
-                label="Quotation date"
-                type="date"
-                value={data.date}
-                onChange={(v) => update("date", v)}
-              />
-              <Field
-                label="Valid until"
-                type="date"
-                value={data.validUntil}
-                onChange={(v) => update("validUntil", v)}
-              />
+              {duration && data.lines.length > 0 && (
+                <div className="event-duration-action">
+                  <p className="muted small-text">
+                    Use the event length for daily items and package components.
+                  </p>
+                  <button
+                    type="button"
+                    className="button small"
+                    onClick={async () => {
+                      if (
+                        await confirm({
+                          title: "Update daily item durations?",
+                          description: `Set daily billing durations to ${duration} ${duration === 1 ? "day" : "days"}, including daily package components. Selling totals and costs will be recalculated. One-time charges keep their existing amounts.`,
+                          confirmLabel: "Apply event duration",
+                        })
+                      ) {
+                        update(
+                          "lines",
+                          applyEventDuration(data.lines, duration),
+                        );
+                        notify(
+                          "Daily item durations updated. Review the totals before saving.",
+                        );
+                      }
+                    }}
+                  >
+                    Apply {duration} {duration === 1 ? "day" : "days"} to daily
+                    items
+                  </button>
+                </div>
+              )}
+            </div>
+            <div className="quotation-details-group">
+              <h3>Document dates</h3>
+              <div className="form-grid">
+                <Field
+                  label="Quotation date"
+                  type="date"
+                  value={data.date}
+                  onChange={(v) => update("date", v)}
+                />
+                <Field
+                  label="Valid until"
+                  type="date"
+                  value={data.validUntil}
+                  onChange={(v) => update("validUntil", v)}
+                />
+              </div>
+              <p className="muted small-text">
+                Valid until is the deadline for accepting this offer.
+              </p>
             </div>
           </section>
           <section className="panel padded" id="quote-items">
@@ -888,14 +1027,15 @@ export default function QuotationEditor({
               Saved with this quotation and copied to its invoices.
             </p>
             {data.sales ? (
-              <p>
-                <strong>{data.sales.name}</strong>
-                <br />
-                {data.sales.phone}
-                {data.sales.signature
-                  ? " · Signature included"
-                  : " · No signature uploaded"}
-              </p>
+              <div className="signature-document-preview">
+                <SalesSignature
+                  sales={data.sales}
+                  companyLogo={data.company.logo}
+                />
+                {!data.sales.signature && (
+                  <p className="small-text muted">No signature uploaded.</p>
+                )}
+              </div>
             ) : (
               <p className="muted">
                 No sales contact saved on this document yet.
@@ -917,19 +1057,52 @@ export default function QuotationEditor({
             </div>
           </section>
           <section className="panel padded" id="quote-terms">
-            <h2>
-              <span className="step">04</span> Notes & terms
-            </h2>
+            <div className="section-heading">
+              <h2>
+                <span className="step">04</span> Notes & terms
+              </h2>
+              <button
+                type="button"
+                className="button small"
+                disabled={
+                  data.notes === DEFAULT_QUOTATION_NOTES &&
+                  data.terms === DEFAULT_QUOTATION_TERMS
+                }
+                onClick={async () => {
+                  if (
+                    await confirm({
+                      title: "Restore default notes and terms?",
+                      description:
+                        "This replaces the notes and terms in this editor with the standard English wording. Save to keep the change.",
+                      confirmLabel: "Restore defaults",
+                    })
+                  )
+                    change({
+                      ...data,
+                      notes: DEFAULT_QUOTATION_NOTES,
+                      terms: DEFAULT_QUOTATION_TERMS,
+                    });
+                }}
+              >
+                <Undo2 size={15} /> Restore defaults
+              </button>
+            </div>
+            <p className="section-description">
+              Shown on the customer document. Adjust the wording for this event
+              if needed.
+            </p>
             <div className="stack">
-              <Area
-                label="Quotation notes"
-                value={data.notes}
-                onChange={(v) => update("notes", v)}
-              />
               <Area
                 label="Quotation terms"
                 value={data.terms}
                 onChange={(v) => update("terms", v)}
+                rows={7}
+              />
+              <Area
+                label="Quotation notes"
+                value={data.notes}
+                onChange={(v) => update("notes", v)}
+                rows={4}
               />
             </div>
           </section>
@@ -937,25 +1110,36 @@ export default function QuotationEditor({
         <aside className="quote-summary" id="quote-review">
           <section className="panel padded sticky-summary">
             <p className="eyebrow">QUOTATION SUMMARY</p>
-            <h2>Ready when you are.</h2>
+            <h2>Review & finish</h2>
+            <div className="quotation-progress">
+              <span>
+                {completed} of {checks.length} essentials complete
+              </span>
+              <div
+                role="progressbar"
+                aria-label="Quotation readiness"
+                aria-valuemin={0}
+                aria-valuemax={checks.length}
+                aria-valuenow={completed}
+              >
+                <span
+                  style={{ width: `${(completed / checks.length) * 100}%` }}
+                />
+              </div>
+            </div>
+            {duration && (
+              <p className="summary-event-dates">
+                <CalendarRange size={16} />
+                <span>
+                  {eventDateLabel(data.eventDate, data.eventEndDate)}
+                  <small>
+                    {duration} {duration === 1 ? "event day" : "event days"}
+                  </small>
+                </span>
+              </p>
+            )}
             <div className="review-checklist">
-              {[
-                {
-                  done: !!data.customer.name.trim() && !!data.event.trim(),
-                  label: "Customer & event",
-                  href: "#quote-details",
-                },
-                {
-                  done: !!data.lines.length,
-                  label: "Items added",
-                  href: "#quote-items",
-                },
-                {
-                  done: !!totals?.complete && !!data.lines.length,
-                  label: "All costs complete",
-                  href: "#quote-items",
-                },
-              ].map((check) => (
+              {checks.map((check) => (
                 <a
                   key={check.label}
                   href={check.href}
